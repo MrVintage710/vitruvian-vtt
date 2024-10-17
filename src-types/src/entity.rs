@@ -1,6 +1,5 @@
 use serde::{
-    ser::{SerializeMap, SerializeSeq},
-    Serialize,
+    de::DeserializeOwned, ser::{SerializeMap, SerializeSeq}, Deserialize, Serialize
 };
 use serde_json::Value;
 use std::{
@@ -87,6 +86,13 @@ impl Serialize for Entity {
             map.serialize_entry(&component.type_name(), component.as_ref())?;
         }
         map.end()
+    }
+}
+
+impl <'d> Deserialize<'d> for Entity {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'d> {
+        deserializer.
+        todo!()
     }
 }
 
