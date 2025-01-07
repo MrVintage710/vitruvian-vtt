@@ -1,0 +1,52 @@
+{
+  "attackProficiencies": {
+    "martial": "Trained",
+    "simple": "Trained",
+    "unarmed": "Trained"
+  },
+  "classFeaturesByLevel": {
+    "1": [
+      {
+        "number_of_boosts": 4,
+        "type": "AttributeBoost"
+      },
+      {
+        "action": {
+          "cost": "One",
+          "name": "Rage",
+          "requirements": "You Aren't fatigued for raging.",
+          "rules_text": "You tap into your inner fury and begin raging. You gain a number of temporary Hit Points equal to your level plus your Constitution modifier. While you are raging:\n                            \n                            - You deal 2 additional damage on melee Strikes. This additional damage is halved if your weapon or unarmed attack is agile.\n                            - You can't use actions with the concentrate trait unless they also have the rage trait. You can Seek while raging.\n                            \n                            Rage lasts for 1 minute, until you fall unconscious, or until the encounter ends, whichever comes first. You can't voluntarily stop raging. When you stop raging, you lose any remaining temporary Hit Points from Rage, and can't gain temporary Hit Points from using the Rage action again for 1 minute.",
+          "traits": [
+            "Barbarian",
+            "Concentrate",
+            "Emotion",
+            "Mental"
+          ]
+        },
+        "description": "You gain the Rage action, which lets you fly into a frenzy.",
+        "name": "Rage",
+        "type": "Action"
+      }
+    ]
+  },
+  "classProficiency": "Trained",
+  "defenseProficiencies": {
+    "heavy_armor": "Untrained",
+    "light_armor": "Trained",
+    "medium_armor": "Trained",
+    "unarmored": "Trained"
+  },
+  "hitPoints": 12,
+  "keyAttribute": {
+    "Single": "Strength"
+  },
+  "saveProficiencies": {
+    "fortitude": "Expert",
+    "reflex": "Trained",
+    "will": "Expert"
+  },
+  "skillProficiencies": {
+    "Athletics": "Trained"
+  },
+  "spellAttackProficiency": "Untrained"
+}

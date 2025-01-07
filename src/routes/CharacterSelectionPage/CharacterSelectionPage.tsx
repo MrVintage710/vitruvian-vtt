@@ -29,7 +29,7 @@ export function CharacterSelectionPage() {
         <div className="flex justify-between items-center w-full gap-6 max-w-7xl">
           <h1 className="text-5xl font-bold">Characters</h1>
           <div className="w-full flex gap-2">
-            <Button variant="primary"><Icon variant={"plus"}/></Button>
+            <Button variant="primary"><Icon variant="plus"/></Button>
             { searchBar }
           </div>
         </div>

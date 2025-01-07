@@ -14,6 +14,7 @@ paste = "1.0.15"
 serde = { version = "1", features = ["derive"] }
 # Serde JSON is a specific implementation of serde for JSON.
 serde_json = "1"
+serde_with = "3.12.0"
 # Strum is a library for working with enums.
 strum = { version = "0.26.3", features = ["derive"] }
 # Automatic returns ts types for rust types
