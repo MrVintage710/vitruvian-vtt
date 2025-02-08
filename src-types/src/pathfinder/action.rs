@@ -1,11 +1,9 @@
 use std::ops::Range;
 
 use serde::{Deserialize, Serialize};
-use serde_with::skip_serializing_none;
 
-use super::Trait;
+use super::traits::Trait;
 
-#[skip_serializing_none]
 #[derive(Deserialize, Serialize)]
 pub struct Action {
     pub name : String,

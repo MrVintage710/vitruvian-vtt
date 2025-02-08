@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::{action::Action, passive::Passive, AttributeBoost, Proficiency, Skill};
+use super::{action::Action, passive::Passive, skill::Skill, AttributeBoost, Proficiency};
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,7 +21,7 @@ pub struct Class {
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum ClassFeature {
-    MultipleClass {
+    Multiple {
         name : String,
         description : String, 
         features: Vec<ClassFeature>

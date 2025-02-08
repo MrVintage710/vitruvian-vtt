@@ -1,16 +1,21 @@
 use serde::{Deserialize, Serialize};
 
+use crate::common::DiceAmount;
+
 pub mod class;
 pub mod action;
 pub mod feat;
 pub mod passive;
+pub mod skill;
+pub mod traits;
+pub mod def;
 
 //=========================================================================================================================
 //         Common Types
 //=========================================================================================================================
 
 // Attribute
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone, Copy)]
 pub enum Attribute {
     Strength,
     Dexterity,
@@ -21,7 +26,7 @@ pub enum Attribute {
 }
 
 // Attribue Boost
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone, Copy)]
 pub enum AttributeBoost {
     Single(Attribute),
     Double(Attribute, Attribute),
@@ -29,7 +34,7 @@ pub enum AttributeBoost {
 }
 
 // Proficiency
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone, Copy)]
 pub enum Proficiency {
     Untrained,
     Trained,
@@ -39,34 +44,19 @@ pub enum Proficiency {
     Mythic
 }
 
-// Skills
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub enum Skill {
-    Acrobatics,
-    Arcana,
-    Athletics,
-    Crafting,
-    Deception,
-    Diplomacy,
-    Intimidation,
-    Lore,
-    Medicine,
-    Nature,
-    Occultism,
-    Performance,
-    Religion,
-    Society,
-    Stealth,
-    Survival,
-    Thievery
+#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+pub enum DamageType {
+    Bludgeoning,
+    Piercing,
+    Slashing,
+    Precision
 }
 
-//Trait
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Trait {
-    Barbarian,
-    Concentrate,
-    Emotion,
-    Mental,
-    Rage
+#[derive(Deserialize, Serialize, Clone, Copy)]
+pub struct Damage(pub DiceAmount, pub DamageType);
+
+impl ToString for Damage {
+    fn to_string(&self) -> String {
+        format!("{} {:?}", self.0.to_string(), self.1)
+    }
 }
