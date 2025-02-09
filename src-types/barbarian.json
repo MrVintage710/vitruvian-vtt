@@ -45,81 +45,10 @@
       },
       {
         "description": "Your rage wells up from a dominant instinct—one you learned from a tradition or that comes naturally to you. Your instinct gives you an ability, requires you to avoid certain behaviors, grants you increased damage and resistances at higher levels, and allows you to select feats tied to your instinct.",
-        "features": [
-          {
-            "description": "The fury of a wild predator fills you when you Rage, granting you ferocious unarmed attacks. Cultures that revere vicious animals (such as apes or bears) give rise to barbarians with this instinct. You might also be at war with an uncontrollable, animalistic side of your personality, or you might be a descendant of a werewolf or another werecreature. Select an animal from the Animal Instincts table that best matches your chosen animal.",
-            "features": [
-              {
-                "description": "While raging, you gain the ape's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
-                "features": [
-                  {
-                    "action": {
-                      "cost": "One",
-                      "name": "Fist Strike",
-                      "requirements": "You must be raging.",
-                      "rules_text": "Take the strike action with your fist. It deals 1D10 Bludgeoning damage and has the following traits: Grapple, Unarmed",
-                      "traits": [
-                        "Brawling",
-                        "Primal"
-                      ],
-                      "trigger": null
-                    },
-                    "description": "You strike with your Fist that you gained from raging.",
-                    "name": "Fist",
-                    "type": "Action"
-                  }
-                ],
-                "name": "Ape",
-                "type": "Multiple"
-              },
-              {
-                "description": "While raging, you gain the bear's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
-                "features": [
-                  {
-                    "action": {
-                      "cost": "One",
-                      "name": "Jaws Strike",
-                      "requirements": "You must be raging.",
-                      "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed",
-                      "traits": [
-                        "Brawling",
-                        "Primal"
-                      ],
-                      "trigger": null
-                    },
-                    "description": "You strike with your Jaws that you gained from raging.",
-                    "name": "Jaws",
-                    "type": "Action"
-                  },
-                  {
-                    "action": {
-                      "cost": "One",
-                      "name": "Claws Strike",
-                      "requirements": "You must be raging.",
-                      "rules_text": "Take the strike action with your claws. It deals 1D6 Slashing damage and has the following traits: Unarmed, Agile",
-                      "traits": [
-                        "Brawling",
-                        "Primal"
-                      ],
-                      "trigger": null
-                    },
-                    "description": "You strike with your Claws that you gained from raging.",
-                    "name": "Claws",
-                    "type": "Action"
-                  }
-                ],
-                "name": "Bear",
-                "type": "Multiple"
-              }
-            ],
-            "name": "Animal Instinct",
-            "number_of_choices": 1,
-            "type": "Choice"
-          }
-        ],
+        "module": "insticts",
         "name": "Instinct",
         "number_of_choices": 1,
-        "type": "Choice"
+        "type": "ReferenceChioce"
       }
     ]
   },
@@ -133,6 +62,72 @@
   "hitPoints": 12,
   "keyAttribute": {
     "Single": "Strength"
+  },
+  "references": {
+    "insticts": [
+      {
+        "description": "While raging, you gain the ape's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "action": {
+              "cost": "One",
+              "name": "Fist Strike",
+              "requirements": "You must be raging.",
+              "rules_text": "Take the strike action with your fist. It deals 1D10 Bludgeoning damage and has the following traits: Grapple, Unarmed",
+              "traits": [
+                "Brawling",
+                "Primal"
+              ],
+              "trigger": null
+            },
+            "description": "You strike with your Fist that you gained from raging.",
+            "name": "Fist",
+            "type": "Action"
+          }
+        ],
+        "name": "Ape",
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the bear's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "action": {
+              "cost": "One",
+              "name": "Jaws Strike",
+              "requirements": "You must be raging.",
+              "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed",
+              "traits": [
+                "Brawling",
+                "Primal"
+              ],
+              "trigger": null
+            },
+            "description": "You strike with your Jaws that you gained from raging.",
+            "name": "Jaws",
+            "type": "Action"
+          },
+          {
+            "action": {
+              "cost": "One",
+              "name": "Claws Strike",
+              "requirements": "You must be raging.",
+              "rules_text": "Take the strike action with your claws. It deals 1D6 Slashing damage and has the following traits: Unarmed, Agile",
+              "traits": [
+                "Brawling",
+                "Primal"
+              ],
+              "trigger": null
+            },
+            "description": "You strike with your Claws that you gained from raging.",
+            "name": "Claws",
+            "type": "Action"
+          }
+        ],
+        "name": "Bear",
+        "type": "Multiple"
+      }
+    ]
   },
   "saveProficiencies": {
     "fortitude": "Expert",

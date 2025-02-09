@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
 use crate::{common::{Dice, DiceAmount}, pathfinder::{
-    action::{Action, ActionCost}, class::{AttackProficiency, Class, ClassFeature, DefenseProficiency, SaveProficiency}, skill::Skill, traits::Trait, Attribute, AttributeBoost::*, Damage, Proficiency
+    action::{Action, ActionCost}, class::{AttackProficiency, Class, ClassFeature, ClassRefereces, DefenseProficiency, SaveProficiency}, skill::Skill, traits::Trait, Attribute, AttributeBoost::*, Damage, Proficiency
 }};
+
+const INSTINCT_MODULE : &'static str = "insticts";
 
 pub fn generate_barbarian_class_def() -> Class {
     Class {
@@ -70,14 +72,19 @@ pub fn generate_barbarian_class_def() -> Class {
                         ] 
                     }
                 },
-                ClassFeature::Choice {
+                ClassFeature::ReferenceChioce {
                     name:"Instinct".to_string(),
                     description:"Your rage wells up from a dominant instinct—one you learned from a tradition or that comes naturally to you. Your instinct gives you an ability, requires you to avoid certain behaviors, grants you increased damage and resistances at higher levels, and allows you to select feats tied to your instinct.".to_string(),
-                    features: generate_barbarian_instict_features(), 
+                    module : INSTINCT_MODULE.to_string(),
                     number_of_choices: 1 
                 }
             ]),
         ]),
+        references: ClassRefereces {
+            references: HashMap::from([
+                (INSTINCT_MODULE.to_string(), generate_barbarian_animal_instict_features())
+            ]),
+        },
     }
 }
 
@@ -105,6 +112,10 @@ pub fn generate_barbarian_animal_instict_features() -> Vec<ClassFeature> {
     
 }
 
+pub fn generate_barbarian_class_feats() -> Vec<ClassFeature> {
+    vec![]
+}
+
 struct AnimalInstictAttack<'a>(&'a str, Damage, &'a [Trait]);
 
 fn generate_barabarian_animal_instict_attack(animal_name: &str, attacks : &[AnimalInstictAttack]) -> ClassFeature {
@@ -126,3 +137,4 @@ fn generate_barabarian_animal_instict_attack(animal_name: &str, attacks : &[Anim
     
     ClassFeature::Multiple { name: animal_name.to_string(), description, features: attacks }
 }
+

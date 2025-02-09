@@ -8,6 +8,7 @@ use super::{action::Action, passive::Passive, skill::Skill, AttributeBoost, Prof
 #[serde(rename_all = "camelCase")]
 pub struct Class {
     pub key_attribute : AttributeBoost,
+    pub references : ClassRefereces,
     pub hit_points : i8,
     pub save_proficiencies : SaveProficiency,
     pub attack_proficiencies : AttackProficiency,
@@ -45,6 +46,12 @@ pub enum ClassFeature {
     AttributeBoost {
         number_of_boosts : u8,
     },
+    ReferenceChioce{
+        name : String,
+        description : String,
+        number_of_choices : u8,
+        module : String
+    },
 }
 
 #[derive(Deserialize, Serialize)]
@@ -67,4 +74,10 @@ pub struct DefenseProficiency {
     pub medium_armor : Proficiency,
     pub heavy_armor : Proficiency,
     pub unarmored : Proficiency,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct ClassRefereces {
+    #[serde(flatten)]
+    pub references : HashMap<String, Vec<ClassFeature>>
 }
