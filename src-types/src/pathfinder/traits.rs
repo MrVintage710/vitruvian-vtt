@@ -13,5 +13,7 @@ pub enum Trait {
     Morph,
     Grapple,
     Unarmed,
-    Agile
+    Agile,
+    Fighter,
+    Flourish
 }

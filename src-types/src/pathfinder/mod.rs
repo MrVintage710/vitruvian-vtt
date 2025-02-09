@@ -9,6 +9,7 @@ pub mod passive;
 pub mod skill;
 pub mod traits;
 pub mod def;
+pub mod source;
 
 //=========================================================================================================================
 //         Common Types
@@ -59,4 +60,11 @@ impl ToString for Damage {
     fn to_string(&self) -> String {
         format!("{} {:?}", self.0.to_string(), self.1)
     }
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy)]
+pub enum Rarity {
+    Common,
+    Uncommon,
+    Rare
 }
