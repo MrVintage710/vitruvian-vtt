@@ -1,0 +1,11 @@
+[package]
+name = "rules-engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.28", features = ["derive"] }
+mlua = { version = "0.10.3", features = ["serialize", "lua54", "vendored"] }
+serde = { version = "1.0.217", features = ["derive"] }
+strum = { version = "0.27.0", features = ["derive"] }
+thiserror = "2.0.11"

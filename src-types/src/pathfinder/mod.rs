@@ -68,3 +68,14 @@ pub enum Rarity {
     Uncommon,
     Rare
 }
+
+#[derive(Deserialize, Serialize, Clone, Copy)]
+pub enum DragonKind {
+    Adamantine,
+    Conspirator,
+    Empyreal,
+    Fortune,
+    Horned,
+    Mirage,
+    Omen
+}

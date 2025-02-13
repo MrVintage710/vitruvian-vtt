@@ -138,7 +138,7 @@
       {
         "cost": "Two",
         "level": 1,
-        "name": "Raging Intimidation",
+        "name": "Sudden Charge",
         "rules_text": "With a quick sprint, you dash up to your foe and swing. Stride twice. If you end your movement within melee reach of at least one enemy, you can make a melee Strike against that enemy. You can use Sudden Charge while Burrowing, Climbing, Flying, or Swimming instead of Striding if you have the corresponding movement type.",
         "source": {
           "PlayerCore": 141
@@ -157,7 +157,7 @@
         "features": [
           {
             "cost": "One",
-            "description": "You strike with your Fist that you gained from raging.",
+            "description": "You strike with your fist that you gained from raging.",
             "name": "Fist",
             "requirements": "You must be raging.",
             "rules_text": "Take the strike action with your fist. It deals 1D10 Bludgeoning damage and has the following traits: Grapple, Unarmed",
@@ -182,7 +182,7 @@
         "features": [
           {
             "cost": "One",
-            "description": "You strike with your Jaws that you gained from raging.",
+            "description": "You strike with your jaws that you gained from raging.",
             "name": "Jaws",
             "requirements": "You must be raging.",
             "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed",
@@ -197,7 +197,7 @@
           },
           {
             "cost": "One",
-            "description": "You strike with your Claws that you gained from raging.",
+            "description": "You strike with your claws that you gained from raging.",
             "name": "Claws",
             "requirements": "You must be raging.",
             "rules_text": "Take the strike action with your claws. It deals 1D6 Slashing damage and has the following traits: Unarmed, Agile",
@@ -212,6 +212,211 @@
           }
         ],
         "name": "Bear",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the bull's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your horn that you gained from raging.",
+            "name": "Horn",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your horn. It deals 1D10 Piercing damage and has the following traits: Shove, Unarmed",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Bull",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the cat's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your jaws that you gained from raging.",
+            "name": "Jaws",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          },
+          {
+            "cost": "One",
+            "description": "You strike with your claws that you gained from raging.",
+            "name": "Claws",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your claws. It deals 1D6 Slashing damage and has the following traits: Unarmed, Agile",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Cat",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the deer's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your antler that you gained from raging.",
+            "name": "Antler",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your antler. It deals 1D10 Piercing damage and has the following traits: Unarmed, Grapple",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Deer",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the frog's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your jaws that you gained from raging.",
+            "name": "Jaws",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your jaws. It deals 1D10 Bludgeoning damage and has the following traits: Unarmed",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          },
+          {
+            "cost": "One",
+            "description": "You strike with your tongue that you gained from raging.",
+            "name": "Tongue",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your tongue. It deals 1D4 Bludgeoning damage and has the following traits: Unarmed, Agile",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Frog",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the shark's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your jaws that you gained from raging.",
+            "name": "Jaws",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed, Unarmed",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Shark",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the snake's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your fangs that you gained from raging.",
+            "name": "Fangs",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your fangs. It deals 1D10 Piercing damage and has the following traits: Unarmed, Unarmed",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Snake",
+        "source": {
+          "PlayerCore2": 74
+        },
+        "type": "Multiple"
+      },
+      {
+        "description": "While raging, you gain the wolf's unarmed attack (or attacks), but you’re unable to use weapons. These attacks are in the brawling group. Your Rage action gains the morph and primal traits.",
+        "features": [
+          {
+            "cost": "One",
+            "description": "You strike with your jaws that you gained from raging.",
+            "name": "Jaws",
+            "requirements": "You must be raging.",
+            "rules_text": "Take the strike action with your jaws. It deals 1D10 Piercing damage and has the following traits: Unarmed, Trip",
+            "source": {
+              "PlayerCore2": 74
+            },
+            "traits": [
+              "Brawling",
+              "Primal"
+            ],
+            "type": "Action"
+          }
+        ],
+        "name": "Wolf",
         "source": {
           "PlayerCore2": 74
         },
