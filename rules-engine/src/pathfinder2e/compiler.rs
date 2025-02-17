@@ -1,4 +1,4 @@
-use mlua::{Lua, Value};
+use mlua::{Function, Lua, Value};
 use crate::{error::VitruvianRulesEngineResult, ObjectIdentifier, RulesItemCompiler};
 use super::{action::Action, class::ClassMeta, feature::{Feature, FeatureMeta}, passive::Passive};
 
@@ -17,7 +17,7 @@ pub fn globals(lua : &Lua) -> VitruvianRulesEngineResult<()> {
 
 pub fn func_define_class(lua : &Lua) -> VitruvianRulesEngineResult<()> {
     let define_class = lua.create_function(|lua : &Lua, meta : ClassMeta| {
-        println!("CLASS DEFINED: {:?}", meta);
+        // println!("CLASS DEFINED: {:?}", meta);
         lua.globals().set("__pathfinder2e_class_meta", meta)?;
         
         Ok(())
@@ -29,7 +29,7 @@ pub fn func_define_class(lua : &Lua) -> VitruvianRulesEngineResult<()> {
 
 pub fn func_define_feature(lua : &Lua) -> VitruvianRulesEngineResult<()> {
     let define_feature = lua.create_function(|lua : &Lua, feature : Feature| {
-        println!("FEATURE DEFINED: {:?}", feature);
+        // println!("FEATURE DEFINED: {:?}", feature);
         lua.globals().set("__pathfinder2e_feature_meta", feature)?;
         
         Ok(())

@@ -6,7 +6,7 @@ You tap into your inner fury and begin raging. You gain a number of temporary Hi
 Rage lasts for 1 minute, until you fall unconscious, or until the encounter ends, whichever comes first. You can't voluntarily stop raging. When you stop raging, you lose any remaining temporary Hit Points from Rage, and can't gain temporary Hit Points from using the Rage action again for 1 minute.
 ]]
 
-local def = feature_action(
+local rage = feature_action(
     {
         cost = 1,
         traits = {
@@ -24,6 +24,10 @@ local def = feature_action(
     }
 )
 
-print(id)
+function rage.onActivate()
+    
+end
+
+
 
 return def

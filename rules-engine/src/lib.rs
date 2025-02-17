@@ -7,15 +7,27 @@ pub mod common;
 pub mod error;
 
 #[derive(Default, Debug, Clone)]
-pub struct ObjectIdentifier(String);
+pub struct ObjectIdentifier(Vec<String>);
 
 impl ObjectIdentifier {    
     pub fn next(&self, id: String) -> ObjectIdentifier {
-        
         let mut new = self.clone();
-        if !new.0.is_empty() { new.0.push_str("::"); }
-        new.0.push_str(&id);
+        new.0.push(id);
         new
+    }
+    
+    pub fn peel(&self) -> ObjectIdentifier {
+        let mut new = self.clone();
+        new.0.pop();
+        new
+    }
+    
+    pub fn push(&mut self, id: String) {
+        self.0.push(id);
+    }
+    
+    pub fn id(&self) -> String {
+        self.0.join("::")
     }
 }
 

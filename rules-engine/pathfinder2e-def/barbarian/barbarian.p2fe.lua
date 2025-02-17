@@ -32,11 +32,6 @@ define_class({
     numberOfSkills = 3,
 })
 
-local rage = feature_passive({
-    rulesText = "You gain a +2 bonus to saving throws against fear effects.",
-    traits = {"barbarian", "rage"}
-}, {
-    name = "Rage"
-})
-
-define_feature(rage, "rage")
+return function ()
+    print("Rage activated!")
+end

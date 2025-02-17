@@ -4,6 +4,10 @@ use strum::EnumDiscriminants;
 
 use super::{action::Action, passive::Passive, source::SourceRef};
 
+//==============================================================================================
+//        Feature Meta
+//==============================================================================================
+
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct FeatureMeta {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -80,6 +84,20 @@ impl FromLua for FeatureMeta {
         })
     }
 }
+
+//==============================================================================================
+//        Feature Actions
+//==============================================================================================
+
+/// This is a struct that defines all events and trigger that this feature has. Each field is a lua function in bytes form.
+#[derive(Default)]
+pub struct FeatureRules {
+    pub on_strike: Option<Vec<u8>>
+}
+
+//==============================================================================================
+//        Feature
+//==============================================================================================
 
 #[derive(Deserialize, Serialize, EnumDiscriminants, Debug)]
 #[serde(tag = "type")]

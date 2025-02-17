@@ -13,7 +13,7 @@ id = "";
 function define_class(options, id) end
 
 ---@function define_feature This function will define a feature for a class or feat.
----@param feature Pathfinder2eFeature
+---@param feature Pathfinder2eFeatureRuled
 ---@param id string? This is the id of the feature.
 function define_feature(feature, id) end
 
@@ -112,6 +112,8 @@ local Pathfinder2eDefenseProficiencies = {
 }
 
 -----------------------    Feature   -----------------------
+
+---@alias Pathfinder2eFeatureRuled fun() : boolean &
 
 ---@alias Pathfinder2eFeature Pathfinder2eFeatureChoice 
 ---| Pathfinder2eFeatureGroup 
