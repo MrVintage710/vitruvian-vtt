@@ -1,10 +1,13 @@
+use mlua::{FromLua, IntoLua, Lua, Table, Value};
 use serde::{Deserialize, Serialize};
+use strum::EnumDiscriminants;
 
 use super::{action::Action, passive::Passive, source::SourceRef};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct FeatureMeta {
-    pub name : String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name : Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description : Option<String>, 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -18,7 +21,7 @@ pub struct FeatureMeta {
 impl FeatureMeta {
     pub fn new(name : &str) -> Self {
         FeatureMeta {
-            name: name.to_string(),
+            name: Some(name.to_string()),
             description: None,
             level: None,
             source: None,
@@ -47,10 +50,41 @@ impl FeatureMeta {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+impl IntoLua for FeatureMeta {
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        let obj = lua.create_table()?;
+        obj.set("name", self.name)?;
+        obj.set("description", self.description)?;
+        obj.set("level", self.level)?;
+        obj.set("source", self.source)?;
+        obj.set("prerequisites", self.prerequisites)?;
+        Ok(mlua::Value::Table(obj))
+    }
+}
+
+impl FromLua for FeatureMeta {
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        if !value.is_table() { return Err(mlua::Error::external("Invalid feature meta value")); }
+        let table = value.as_table().unwrap();
+        let name = table.get("name")?;
+        let description = table.get("description")?;
+        let level = table.get("level")?;
+        let source = table.get("source")?;
+        let prerequisites = table.get("prerequisites")?;
+        Ok(FeatureMeta { 
+            name, 
+            description, 
+            level, 
+            source, 
+            prerequisites 
+        })
+    }
+}
+
+#[derive(Deserialize, Serialize, EnumDiscriminants, Debug)]
 #[serde(tag = "type")]
 pub enum Feature {
-    Multiple {
+    Group {
         #[serde(flatten)]
         meta : FeatureMeta,
         features: Vec<Feature>
@@ -73,14 +107,103 @@ pub enum Feature {
         #[serde(flatten)]
         passive : Passive
     },
-    AttributeBoost {
-        level : u8,
-        number_of_boosts : u8,
-    },
-    ReferenceChioce{
-        #[serde(flatten)]
-        meta : FeatureMeta,
-        number_of_choices : u8,
-        module : String
-    },
+    Reference(String)
+}
+
+impl IntoLua for Feature {
+    fn into_lua(self, lua: &Lua) -> mlua::Result<mlua::Value> {
+        match self {
+            Feature::Group { meta, features } => feature_group_into_lua(lua, meta, features),
+            Feature::Choice { meta, number_of_choices, features } => feature_choice_into_lua(lua, meta, number_of_choices, features),
+            Feature::Action { meta, action } => feature_action_into_lua(lua, meta, action),
+            Feature::Passive { meta, passive } => feature_passive_into_lua(lua, meta, passive),
+            Feature::Reference(s) => Ok(mlua::Value::String(lua.create_string(s)?)),
+        }
+    }
+}
+
+fn feature_choice_into_lua(lua : &Lua, meta : FeatureMeta, number_of_choices : u8, features : Vec<Feature>) -> mlua::Result<mlua::Value> {
+    let table = lua.create_table()?;
+    table.set("type", "choice")?;
+    table.set("meta", meta.into_lua(lua)?)?;
+    table.set("number_of_choices", number_of_choices)?;
+    table.set("features", features.into_lua(lua)?)?;
+    Ok(mlua::Value::Table(table))
+}
+
+fn feature_passive_into_lua(lua : &Lua, meta : FeatureMeta, passive : Passive) -> mlua::Result<mlua::Value> {
+    let table = lua.create_table()?;
+    table.set("type", "passive")?;
+    table.set("meta", meta.into_lua(lua)?)?;
+    table.set("passive", passive.into_lua(lua)?)?;
+    Ok(mlua::Value::Table(table))
+}
+
+fn feature_group_into_lua(lua : &Lua, meta : FeatureMeta, features : Vec<Feature>) -> mlua::Result<mlua::Value> {
+    let table = lua.create_table()?;
+    table.set("type", "group")?;
+    table.set("meta", meta.into_lua(lua)?)?;
+    table.set("features", features.into_lua(lua)?)?;
+    Ok(mlua::Value::Table(table))
+}
+
+fn feature_action_into_lua(lua : &Lua, meta : FeatureMeta, action : Action) -> mlua::Result<mlua::Value> {
+    let table = lua.create_table()?;
+    table.set("type", "action")?;
+    table.set("meta", meta.into_lua(lua)?)?;
+    table.set("action", action.into_lua(lua)?)?;
+    Ok(mlua::Value::Table(table))
+}
+
+impl FromLua for Feature {
+    fn from_lua(value: mlua::Value, _lua: &Lua) -> mlua::Result<Self> {
+        match value {
+            Value::Table(t) => {
+                let ty = t.get::<String>("type")?;
+                match ty.as_str() {
+                    "choice" => feature_choice_from_lua(t),
+                    "passive" => feature_passive_from_lua(t),
+                    "group" => feature_group_from_lua(t),
+                    "action" => feature_action_from_lua(t),
+                    _ => Err(mlua::Error::FromLuaConversionError {
+                        from: "Table",
+                        to: std::any::type_name::<Feature>().to_string(),
+                        message: Some(format!("Unknown feature type: {}", ty)),
+                    })
+                }
+            },
+            Value::String(s) => Ok(Feature::Reference(s.to_str()?.to_string())),
+            _ => Err(mlua::Error::FromLuaConversionError {
+                from: value.type_name(),
+                to: std::any::type_name::<Feature>().to_string(),
+                message: None,
+            })
+        }
+    }
+}
+
+fn feature_action_from_lua(table : Table) -> mlua::Result<Feature> {
+    let meta : FeatureMeta = table.get("meta")?;
+    let action : Action = table.get("action")?;
+    Ok(Feature::Action { meta, action })
+}
+
+fn feature_choice_from_lua(table : Table) -> mlua::Result<Feature> {
+    let meta : FeatureMeta = table.get("meta")?;
+    let features : Vec<Feature> = table.get("choices")?;
+    let number_of_choices : Option<u8> = table.get("number_of_choices")?;
+    let number_of_choices = number_of_choices.unwrap_or(1);
+    Ok(Feature::Choice { meta, features, number_of_choices })
+}
+
+fn feature_group_from_lua(table : Table) -> mlua::Result<Feature> {
+    let meta : FeatureMeta = table.get("meta")?;
+    let features : Vec<Feature> = table.get("features")?;
+    Ok(Feature::Group { meta, features })
+}
+
+fn feature_passive_from_lua(table : Table) -> mlua::Result<Feature> {
+    let meta : FeatureMeta = table.get("meta")?;
+    let passive : Passive = table.get("passive")?;
+    Ok(Feature::Passive { meta, passive })
 }

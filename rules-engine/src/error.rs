@@ -9,4 +9,6 @@ pub enum VitruvianRulesEngineError {
     IoError(#[from] io::Error),
     #[error("There was an error running the lua file: {0}")]
     LuaError(#[from] mlua::Error),
+    #[error("There was an error while converting a string to an enum: {0}")]
+    EnumCoerceError(#[from] strum::ParseError),
 }

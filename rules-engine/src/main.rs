@@ -1,5 +1,5 @@
-use rules_engine::{compile_rule_item, pathfinder2e::compiler::compile_class::PathfinderClassCompiler};
+use rules_engine::{compile_rule_item, pathfinder2e::compiler::Pathfinder2eCompiler};
 
 pub fn main() {
-    compile_rule_item::<PathfinderClassCompiler>("./pathfinder2e-def").expect("There was a problem running the code");
+    compile_rule_item::<Pathfinder2eCompiler>("./pathfinder2e-def").expect("There was a problem running the code");
 }

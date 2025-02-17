@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use mlua::{FromLua, IntoLua, Value};
+use mlua::{FromLua, IntoLua};
 use serde::{Deserialize, Serialize};
 use super::{feature::Feature, skill::Skill, source::SourceRef, AttributeBoost, Proficiency};
 
@@ -28,6 +28,8 @@ pub struct ClassMeta {
     pub class_proficiency : Proficiency,
     pub spell_attack_proficiency : Proficiency,
     pub skill_proficiencies : HashMap<Skill, Proficiency>,
+    pub number_of_skills : u8,
+    pub perception_proficiency : Proficiency,
 }
 
 impl IntoLua for ClassMeta {
@@ -43,6 +45,8 @@ impl IntoLua for ClassMeta {
         obj.set("classProficiency", self.class_proficiency)?;
         obj.set("skillProficiencies", self.skill_proficiencies)?;
         obj.set("spellAttackAroficiency", self.spell_attack_proficiency)?;
+        obj.set("perceptionProficiency", self.perception_proficiency)?;
+        obj.set("numberOfSkills", self.number_of_skills)?;
         Ok(mlua::Value::Table(obj))
     }
 }
@@ -61,8 +65,22 @@ impl FromLua for ClassMeta {
         let class_proficiency = table.get("classProficiency")?;
         let spell_attack_proficiency = table.get("spellAttackProficiency")?;
         let skill_proficiencies = table.get("skillProficiencies")?;
+        let perception_proficiency = table.get("perceptionProficiency")?;
+        let number_of_skills = table.get("numberOfSkills")?;
         Ok(ClassMeta { 
-            description, source, key_attribute, hit_points, save_proficiencies, attack_proficiencies, defense_proficiencies, class_proficiency, spell_attack_proficiency, skill_proficiencies })
+            description, 
+            source, 
+            key_attribute, 
+            hit_points, 
+            save_proficiencies, 
+            attack_proficiencies, 
+            defense_proficiencies, 
+            class_proficiency, 
+            spell_attack_proficiency, 
+            skill_proficiencies, 
+            perception_proficiency,
+            number_of_skills
+        })
     }
 }
 

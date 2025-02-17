@@ -1,13 +1,53 @@
 ---@meta
 
+-----------------------    Constants    -----------------------
+
+---@type string
+id = "";
+
+-----------------------    Functions    -----------------------
+
 ---@function define_class This function is used to define a pathfinder2e class in the ruleset
 ---@param options Pathfinder2eClassMeta This is the input for defining a class.
----@return string
-function define_class(options) end
+---@param id string? This is the id of the class. Leave empty to use file prefix.
+function define_class(options, id) end
 
----@function class_name
----@return string
-function class_name() end
+---@function define_feature This function will define a feature for a class or feat.
+---@param feature Pathfinder2eFeature
+---@param id string? This is the id of the feature.
+function define_feature(feature, id) end
+
+---@function feature_choice This function will create a choice feature.
+---@param features Pathfinder2eFeature[] This is the list of features that the player can choose from.
+---@param numberOfChoices number? This is the number of choices the player can make.
+---@param meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@return Pathfinder2eFeatureChoice
+function feature_choice(features, numberOfChoices, meta) end
+
+---@function feature_group This function will create a feature that grants muliple other features.
+---@param features Pathfinder2eFeature[] This is the list of features that the player can choose from.
+---@param meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@return Pathfinder2eFeatureGroup
+function feature_group(features, meta) end
+
+---@function feature_action This function will create a choice feature.
+---@param action Pathfinder2eAction This is the action that this feature grants the player.
+---@param meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@return Pathfinder2eFeatureAction
+function feature_action(action, meta) end
+
+---@function feature_passive This function will create a passive feature.
+---@param passive Pathfinder2ePassive This is the passive that this feature grants the player.
+---@param meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@return Pathfinder2eFeaturePassive
+function feature_passive(passive, meta) end
+
+---@function add_class_feature This function will define a feature for a class or feat.
+---@param level number This is the level the feature is gained.
+---@param feature Pathfinder2eFeature This is the feature that you are adding. It is either a reference or it is a feature.
+function add_class_feature(level, feature) end
+
+-----------------------    ClassMeta    -----------------------
 
 ---@class Pathfinder2eClassMeta
 ---@field public description string? This is the description of the class.
@@ -19,6 +59,8 @@ function class_name() end
 ---@field public defenseProficiencies Pathfinder2eDefenseProficiencies This defines what armor this class is proficient in.
 ---@field public classProficiency Pathfinder2eProficiency This is the proficiency of the class.
 ---@field public spellAttackProficiency Pathfinder2eProficiency? This defines what spell attack proficiency this class has.
+---@field public perceptionProficiency Pathfinder2eProficiency This defines what perception proficiency this class has.
+---@field public numberOfSkills number This defines how many skills this class can learn (before adding int score).
 ---@field public skillProficiencies table<Pathfinder2eSkill, Pathfinder2eProficiency> This defines what skills this class is proficient in.
 local Pathfinder2eClassMeta = {
     description = "",
@@ -30,25 +72,19 @@ local Pathfinder2eClassMeta = {
     defenseProficiencies = {},
     classProficiency = "untrained",
     spellAttackProficiency = "untrained",
+    perceptionProficiency = "untrained",
+    numberOfSkills = 0,
     skillProficiencies = {},
 }
 
--- ---@function define_class
--- ---@param options Pathfinder2eClassMeta
--- ---@return string
--- function define_class_feature(options) end
-
-
------------------------    Types    -----------------------
-
 ---@class Pathfinder2eClassMeta
----@field public wisdom Pathfinder2eProficiency? This is the wisdom saving throw proficiency.
+---@field public will Pathfinder2eProficiency? This is the wisdom saving throw proficiency.
 ---@field public fortitude Pathfinder2eProficiency? This is the fortitude saving throw proficiency.
 ---@field public reflex Pathfinder2eProficiency? This is the reflex saving throw proficiency.
 local Pathfinder2eSaveProficiencies = {
     fortitude = "untrained",
     reflex = "untrained",
-    wisdom = "untrained",
+    will = "untrained",
 }
 
 ---@class Pathfinder2eAttackProficiencies
@@ -75,6 +111,116 @@ local Pathfinder2eDefenseProficiencies = {
     unarmored = "untrained",
 }
 
+-----------------------    Feature   -----------------------
+
+---@alias Pathfinder2eFeature Pathfinder2eFeatureChoice 
+---| Pathfinder2eFeatureGroup 
+---| Pathfinder2eFeatureAction 
+---| Pathfinder2eFeaturePassive
+
+---@class Pathfinder2eFeatureAction
+---@field private type "action" This is the type of feature.
+---@field public meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@field public action Pathfinder2eAction This is the action that this feature gives.
+local Pathfinder2eFeatureAction = {
+    type = "action",
+    meta = {},
+    action = {},
+}
+
+---@class Pathfinder2eFeatureGroup
+---@field private type "group" This is the type of feature.
+---@field public meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@field public features Pathfinder2eFeature[] This is the list of features that the player can choose from.
+local Pathfinder2eFeatureGroup = {
+    type = "group",
+    meta = {},
+    features = {}
+}
+
+---@class Pathfinder2eFeatureChoice
+---@field private type "choice" This is the type of feature.
+---@field public numberOfChoices number? This is the number of choices the player can make.
+---@field public meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@field public features Pathfinder2eFeature[] This is the list of features that the player can choose from.
+local Pathfinder2eFeatureChoice = {
+    type = "choice",
+    numberOfChoices = 1,
+    meta = {},
+    features = {}
+}
+
+---@class Pathfinder2eFeaturePassive
+---@field private type "passive" This is the type of feature.
+---@field public meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
+---@field public passive Pathfinder2ePassive This is the passive that comes with the feature.
+local Pathfinder2eFeaturePassive= {
+    type = "passive",
+    meta = {},
+    passive = {},
+}
+
+---@class Pathfinder2eFeatureMeta
+---@field public name string? This is the name of the feature.
+---@field public description string? This is the description of the feature.
+---@field public level? number This is the level the feature is gained.
+---@field public source Pathfinder2eSourceRef? This is the location(s) that this feature is in the books.
+---@field public prerequisites string? This is the prerequisites for the feature.
+local Pafthider2eFeatureMeta = {
+    name = "",
+    description = "",
+    level = 0,
+    source = {},
+    prerequisites = "",
+}
+
+-----------------------    Action    -----------------------
+
+---@class Pathfinder2eAction
+---@field public cost Pathfinder2eActionCost This is the cost of the action.
+---@field public trigger string? This is the trigger for the action.
+---@field public requirements string? This is the requirements for the action.
+---@field public rulesText string This is the rules text for the action.
+---@field public traits Pathfinder2eTrait[] This is the traits for the action.
+local Pathfinder2eAction = {
+    cost = 1,
+    trigger = "",
+    requirements = "",
+    rulesText = "",
+    traits = {}
+}
+
+-----------------------    Passive    -----------------------
+
+---@class Pathfinder2ePassive
+---@field public rulesText string This is the rules text for the passive.
+---@field public traits Pathfinder2eTrait[] This is the traits for the passive.
+local Pathfinder2ePassive = {
+    rulesText = "",
+    traits = {}
+}
+
+-----------------------    Common Types   -----------------------
+
+---@alias Pathfinder2eTrait 
+---| '"barbarian"'
+---| '"concentrate"'
+---| '"emotion"'
+---| '"mental"'
+---| '"rage"'
+---| '"brawling"'
+---| '"primal"'
+---| '"morph"'
+---| '"grapple"'
+---| '"unarmed"'
+---| '"unarmed"'
+---| '"agile"'
+---| '"fighter"'
+---| '"flourish"'
+---| '"shove"'
+---| '"trip"'
+
+---@alias Pathfinder2eActionCost 1 | 2 | 3 | "1-2" | "1-3" | "reaction" | "free"
 
 ---@alias Pathfinder2eAttribute
 ---| '"str"' # The Strength of any given character
@@ -117,12 +263,3 @@ local Pathfinder2eDefenseProficiencies = {
 ---| '"WarOfImmortals"' # You have a great deal of skill in the task.
 
 ---@alias Pathfinder2eSourceRef table<Pathfinder2eSource, number>
-
----@enum Pathfinder2eActionCost
-local ActionCost = {
-    One = "One",
-    Two = "Two",
-    Three = "Three",
-    Reaction = "Reaction",
-    Free = "Free",
-}
