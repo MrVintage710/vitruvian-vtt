@@ -1,4 +1,6 @@
 use mlua::{FromLua, IntoLua, Lua, Table, Value};
+use native_db::native_db;
+use native_model::native_model;
 use sea_query::Iden;
 use serde::{Deserialize, Serialize};
 use strum::EnumDiscriminants;
@@ -15,27 +17,23 @@ use super::{action::Action, passive::Passive, source::SourceRef};
 #[serde(tag = "type")]
 pub enum Feature {
     Group {
-        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         features: Vec<Feature>
     },
     Choice {
-        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         number_of_choices : u8,
         features : Vec<Feature>
     },
     Action {
-        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         #[serde(flatten)]
         action : Action
     },
     Passive {
-        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         #[serde(flatten)]
