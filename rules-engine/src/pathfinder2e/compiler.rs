@@ -1,41 +1,19 @@
 use mlua::{Function, Lua, Value};
-use crate::{error::VitruvianRulesEngineResult, ObjectIdentifier, RulesItemCompiler};
-use super::{action::Action, class::ClassMeta, feature::{Feature, FeatureMeta}, passive::Passive};
+use crate::{compile::RulesItemCompiler, error::VitruvianRulesEngineResult, item::RulesItemIdentifier};
+use super::{action::Action, class::{Class, ClassMeta}, feature::{Feature, FeatureMeta}, passive::Passive};
+
+//==============================================================================================
+//        Lua Globals
+//==============================================================================================
 
 pub fn globals(lua : &Lua) -> VitruvianRulesEngineResult<()> {
     
     //functions
-    func_define_class(lua)?;
-    func_define_feature(lua)?;
     func_feature_passive(lua)?;
     func_feature_action(lua)?;
     func_feature_choice(lua)?;
     func_feature_group(lua)?;
     
-    Ok(())
-}
-
-pub fn func_define_class(lua : &Lua) -> VitruvianRulesEngineResult<()> {
-    let define_class = lua.create_function(|lua : &Lua, meta : ClassMeta| {
-        // println!("CLASS DEFINED: {:?}", meta);
-        lua.globals().set("__pathfinder2e_class_meta", meta)?;
-        
-        Ok(())
-    })?;
-    
-    lua.globals().set("define_class", Value::Function(define_class))?;
-    Ok(())
-}
-
-pub fn func_define_feature(lua : &Lua) -> VitruvianRulesEngineResult<()> {
-    let define_feature = lua.create_function(|lua : &Lua, feature : Feature| {
-        // println!("FEATURE DEFINED: {:?}", feature);
-        lua.globals().set("__pathfinder2e_feature_meta", feature)?;
-        
-        Ok(())
-    })?;
-    
-    lua.globals().set("define_feature", Value::Function(define_feature))?;
     Ok(())
 }
 
@@ -79,15 +57,19 @@ pub fn func_feature_group(lua : &Lua) -> VitruvianRulesEngineResult<()> {
     Ok(())
 }
 
-pub struct Pathfinder2eCompiler;
+//==============================================================================================
+//        Class Compiler
+//==============================================================================================
 
-impl RulesItemCompiler for Pathfinder2eCompiler {
+pub struct Pathfinder2eClassCompiler;
+
+impl RulesItemCompiler for Pathfinder2eClassCompiler {
     type ResultType = ();
     
-    fn compile(lua : &Lua, src : &str, item_name: ObjectIdentifier) -> VitruvianRulesEngineResult<Self::ResultType> {
-        lua.globals().set("id", item_name.0)?;
+    fn parse(lua : &Lua, src : &str, item_name: RulesItemIdentifier) -> VitruvianRulesEngineResult<Self::ResultType> {
+        lua.globals().set("id", item_name.id())?;
         
-        let value : mlua::Value = lua.load(src).eval()?;
+        let value : Option<ClassMeta> = lua.load(src).eval()?;
         
         Ok(())
     }
@@ -99,6 +81,44 @@ impl RulesItemCompiler for Pathfinder2eCompiler {
     }
 
     fn get_identifier() -> &'static str {
-        "p2fe"
+        "class"
+    }
+
+    fn compile(results : Vec<Self::ResultType>) -> VitruvianRulesEngineResult<()> {
+        todo!()
+    }
+}
+
+//==============================================================================================
+//        Feature Compiler
+//==============================================================================================
+
+pub struct Pathfinder2eFeatureCompiler;
+
+impl RulesItemCompiler for Pathfinder2eFeatureCompiler {
+    type ResultType = ();
+    
+    fn parse(lua : &Lua, src : &str, item_name: RulesItemIdentifier) -> VitruvianRulesEngineResult<Self::ResultType> {
+        lua.globals().set("id", item_name.id())?;
+        
+        let value : Option<Feature> = lua.load(src).eval()?;
+        let on_activate : Function = lua.globals().get("OnActivate")?;
+        lua.load(on_activate.dump(false)).exec()?;
+        
+        Ok(())
+    }
+
+    fn prepare_lua() -> VitruvianRulesEngineResult<Lua> {
+        let lua = Lua::new();
+        globals(&lua)?;
+        Ok(lua)
+    }
+
+    fn get_identifier() -> &'static str {
+        "feature"
+    }
+
+    fn compile(results : Vec<Self::ResultType>) -> VitruvianRulesEngineResult<()> {
+        todo!()
     }
 }

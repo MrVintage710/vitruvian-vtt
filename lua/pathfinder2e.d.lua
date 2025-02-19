@@ -7,15 +7,9 @@ id = "";
 
 -----------------------    Functions    -----------------------
 
----@function define_class This function is used to define a pathfinder2e class in the ruleset
----@param options Pathfinder2eClassMeta This is the input for defining a class.
----@param id string? This is the id of the class. Leave empty to use file prefix.
-function define_class(options, id) end
-
----@function define_feature This function will define a feature for a class or feat.
----@param feature Pathfinder2eFeatureRuled
----@param id string? This is the id of the feature.
-function define_feature(feature, id) end
+---@function class This function will create a choice feature.
+---@return Pathfinder2eClassMeta
+function class(features, numberOfChoices, meta) end
 
 ---@function feature_choice This function will create a choice feature.
 ---@param features Pathfinder2eFeature[] This is the list of features that the player can choose from.
@@ -41,11 +35,6 @@ function feature_action(action, meta) end
 ---@param meta Pathfinder2eFeatureMeta? This is the meta data for the feature.
 ---@return Pathfinder2eFeaturePassive
 function feature_passive(passive, meta) end
-
----@function add_class_feature This function will define a feature for a class or feat.
----@param level number This is the level the feature is gained.
----@param feature Pathfinder2eFeature This is the feature that you are adding. It is either a reference or it is a feature.
-function add_class_feature(level, feature) end
 
 -----------------------    ClassMeta    -----------------------
 

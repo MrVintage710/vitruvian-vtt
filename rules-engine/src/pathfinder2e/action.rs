@@ -54,7 +54,7 @@ impl IntoLua for Action {
         table.set("cost", self.cost)?;
         table.set("trigger", self.trigger)?;
         table.set("requirements", self.requirements)?;
-        table.set("rules_text", self.rules_text)?;
+        table.set("rulesText", self.rules_text)?;
         table.set("traits", self.traits)?;
         Ok(Value::Table(table))
     }

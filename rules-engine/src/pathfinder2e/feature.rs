@@ -1,99 +1,11 @@
 use mlua::{FromLua, IntoLua, Lua, Table, Value};
+use sea_query::Iden;
 use serde::{Deserialize, Serialize};
 use strum::EnumDiscriminants;
 
+use crate::item::{ItemTable, RulesItem, RulesItemIdentifier};
+
 use super::{action::Action, passive::Passive, source::SourceRef};
-
-//==============================================================================================
-//        Feature Meta
-//==============================================================================================
-
-#[derive(Deserialize, Serialize, Debug, Default)]
-pub struct FeatureMeta {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name : Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description : Option<String>, 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub level : Option<u8>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source : Option<SourceRef>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prerequisites : Option<String>,
-}
-
-impl FeatureMeta {
-    pub fn new(name : &str) -> Self {
-        FeatureMeta {
-            name: Some(name.to_string()),
-            description: None,
-            level: None,
-            source: None,
-            prerequisites: None,
-        }
-    }
-    
-    pub fn with_desc(mut self, desc : &str) -> Self {
-        self.description = Some(desc.to_string());
-        self
-    }
-    
-    pub fn with_level(mut self, level : u8) -> Self {
-        self.level = Some(level);
-        self
-    }
-    
-    pub fn with_source(mut self, source : SourceRef) -> Self {
-        self.source = Some(source);
-        self
-    }
-    
-    pub fn with_prerequisites(mut self, prereq : &str) -> Self {
-        self.prerequisites = Some(prereq.to_string());
-        self
-    }
-}
-
-impl IntoLua for FeatureMeta {
-    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
-        let obj = lua.create_table()?;
-        obj.set("name", self.name)?;
-        obj.set("description", self.description)?;
-        obj.set("level", self.level)?;
-        obj.set("source", self.source)?;
-        obj.set("prerequisites", self.prerequisites)?;
-        Ok(mlua::Value::Table(obj))
-    }
-}
-
-impl FromLua for FeatureMeta {
-    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
-        if !value.is_table() { return Err(mlua::Error::external("Invalid feature meta value")); }
-        let table = value.as_table().unwrap();
-        let name = table.get("name")?;
-        let description = table.get("description")?;
-        let level = table.get("level")?;
-        let source = table.get("source")?;
-        let prerequisites = table.get("prerequisites")?;
-        Ok(FeatureMeta { 
-            name, 
-            description, 
-            level, 
-            source, 
-            prerequisites 
-        })
-    }
-}
-
-//==============================================================================================
-//        Feature Actions
-//==============================================================================================
-
-/// This is a struct that defines all events and trigger that this feature has. Each field is a lua function in bytes form.
-#[derive(Default)]
-pub struct FeatureRules {
-    pub on_strike: Option<Vec<u8>>
-}
 
 //==============================================================================================
 //        Feature
@@ -103,23 +15,27 @@ pub struct FeatureRules {
 #[serde(tag = "type")]
 pub enum Feature {
     Group {
+        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         features: Vec<Feature>
     },
     Choice {
+        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         number_of_choices : u8,
         features : Vec<Feature>
     },
     Action {
+        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         #[serde(flatten)]
         action : Action
     },
     Passive {
+        // id: Option<RulesItemIdentifier>,
         #[serde(flatten)]
         meta : FeatureMeta,
         #[serde(flatten)]
@@ -127,6 +43,28 @@ pub enum Feature {
     },
     Reference(String)
 }
+
+// impl RulesItem for Feature {
+//     type Table = FeatureTable;
+
+//     fn id(&self) -> Option<&crate::item::RulesItemIdentifier> {
+//         match self {
+//             Feature::Group { id, meta: _, features: _ } => id.as_ref(),
+//             Feature::Choice { id, meta: _, number_of_choices: _, features: _ } => id.as_ref(),
+//             Feature::Action { id, meta: _, action: _ } => id.as_ref(),
+//             Feature::Passive { id, meta: _, passive: _} => id.as_ref(),
+//             Feature::Reference(id) => Some(id),
+//         }
+//     }
+
+//     fn from_row(row: &rusqlite::Row) -> crate::error::VitruvianRulesEngineResult<Self> {
+//         todo!()
+//     }
+
+//     fn map_value(&self, col : Self::Table) -> sea_query::SimpleExpr {
+//         todo!()
+//     }
+// }
 
 impl IntoLua for Feature {
     fn into_lua(self, lua: &Lua) -> mlua::Result<mlua::Value> {
@@ -224,4 +162,124 @@ fn feature_passive_from_lua(table : Table) -> mlua::Result<Feature> {
     let meta : FeatureMeta = table.get("meta")?;
     let passive : Passive = table.get("passive")?;
     Ok(Feature::Passive { meta, passive })
+}
+
+//==============================================================================================
+//        Feature Table
+//==============================================================================================
+
+#[derive(Iden, Clone, Copy)]
+pub enum FeatureTable {
+    Table,
+    Id,
+    
+}
+
+impl ItemTable for FeatureTable {
+    fn create_table(db : &rusqlite::Connection) -> crate::error::VitruvianRulesEngineResult<()> {
+        todo!()
+    }
+
+    fn list_columns() -> Vec<Self> {
+        todo!()
+    }
+
+    fn id_variant() -> Self {
+        todo!()
+    }
+
+    fn table_variant() -> Self {
+        todo!()
+    }
+}
+
+//==============================================================================================
+//        Feature Meta
+//==============================================================================================
+
+#[derive(Deserialize, Serialize, Debug, Default)]
+pub struct FeatureMeta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name : Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description : Option<String>, 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub level : Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source : Option<SourceRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prerequisites : Option<String>,
+}
+
+impl FeatureMeta {
+    pub fn new(name : &str) -> Self {
+        FeatureMeta {
+            name: Some(name.to_string()),
+            description: None,
+            level: None,
+            source: None,
+            prerequisites: None,
+        }
+    }
+    
+    pub fn with_desc(mut self, desc : &str) -> Self {
+        self.description = Some(desc.to_string());
+        self
+    }
+    
+    pub fn with_level(mut self, level : u8) -> Self {
+        self.level = Some(level);
+        self
+    }
+    
+    pub fn with_source(mut self, source : SourceRef) -> Self {
+        self.source = Some(source);
+        self
+    }
+    
+    pub fn with_prerequisites(mut self, prereq : &str) -> Self {
+        self.prerequisites = Some(prereq.to_string());
+        self
+    }
+}
+
+impl IntoLua for FeatureMeta {
+    fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<mlua::Value> {
+        let obj = lua.create_table()?;
+        obj.set("name", self.name)?;
+        obj.set("description", self.description)?;
+        obj.set("level", self.level)?;
+        obj.set("source", self.source)?;
+        obj.set("prerequisites", self.prerequisites)?;
+        Ok(mlua::Value::Table(obj))
+    }
+}
+
+impl FromLua for FeatureMeta {
+    fn from_lua(value: mlua::Value, lua: &mlua::Lua) -> mlua::Result<Self> {
+        if !value.is_table() { return Err(mlua::Error::external("Invalid feature meta value")); }
+        let table = value.as_table().unwrap();
+        let name = table.get("name")?;
+        let description = table.get("description")?;
+        let level = table.get("level")?;
+        let source = table.get("source")?;
+        let prerequisites = table.get("prerequisites")?;
+        Ok(FeatureMeta { 
+            name, 
+            description, 
+            level, 
+            source, 
+            prerequisites 
+        })
+    }
+}
+
+//==============================================================================================
+//        Feature Actions
+//==============================================================================================
+
+/// This is a struct that defines all events and trigger that this feature has. Each field is a lua function in bytes form.
+#[derive(Default)]
+pub struct FeatureRules {
+    pub on_strike: Option<Vec<u8>>
 }

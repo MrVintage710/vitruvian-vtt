@@ -4,7 +4,6 @@ use crate::common::DiceAmount;
 
 pub mod class;
 pub mod action;
-pub mod feat;
 pub mod passive;
 pub mod skill;
 pub mod traits;
