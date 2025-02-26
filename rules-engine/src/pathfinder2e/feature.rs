@@ -1,11 +1,9 @@
 use mlua::{FromLua, IntoLua, Lua, Table, Value};
-use native_db::native_db;
-use native_model::native_model;
-use sea_query::Iden;
+use sea_query::{ColumnDef, Iden, SqliteQueryBuilder};
 use serde::{Deserialize, Serialize};
-use strum::EnumDiscriminants;
+use strum::{EnumDiscriminants, EnumIter};
 
-use crate::item::{ItemTable, RulesItem, RulesItemIdentifier};
+use crate::{error::VitruvianRulesEngineResult, item::{CustomIden, ItemTable, RulesItem, RulesItemIdentifier}};
 
 use super::{action::Action, passive::Passive, source::SourceRef};
 
@@ -42,20 +40,14 @@ pub enum Feature {
     Reference(String)
 }
 
-// impl RulesItem for Feature {
+// impl RulesItem for (RulesItemIdentifier, Feature) {
 //     type Table = FeatureTable;
 
 //     fn id(&self) -> Option<&crate::item::RulesItemIdentifier> {
-//         match self {
-//             Feature::Group { id, meta: _, features: _ } => id.as_ref(),
-//             Feature::Choice { id, meta: _, number_of_choices: _, features: _ } => id.as_ref(),
-//             Feature::Action { id, meta: _, action: _ } => id.as_ref(),
-//             Feature::Passive { id, meta: _, passive: _} => id.as_ref(),
-//             Feature::Reference(id) => Some(id),
-//         }
+        
 //     }
 
-//     fn from_row(row: &rusqlite::Row) -> crate::error::VitruvianRulesEngineResult<Self> {
+//     fn from_row(row: &rusqlite::Row) -> VitruvianRulesEngineResult<Self> {
 //         todo!()
 //     }
 
@@ -166,28 +158,39 @@ fn feature_passive_from_lua(table : Table) -> mlua::Result<Feature> {
 //        Feature Table
 //==============================================================================================
 
-#[derive(Iden, Clone, Copy)]
+#[derive(EnumIter, Iden, Clone, Copy)]
 pub enum FeatureTable {
-    Table,
-    Id,
-    
+    Name,
+    Description,
+    Level,
+    Source,
+    Prerequisites,
+    Type,
+    NumberOfChoices,
+    Content
 }
 
 impl ItemTable for FeatureTable {
-    fn create_table(db : &rusqlite::Connection) -> crate::error::VitruvianRulesEngineResult<()> {
-        todo!()
+    fn create_table(db : &rusqlite::Connection) -> VitruvianRulesEngineResult<()> {
+        let query = sea_query::Table::create()
+            .if_not_exists()
+            .table(Self::table_iden())
+            .col(ColumnDef::new(Self::id_iden()).text().not_null().primary_key().unique_key())
+            .col(ColumnDef::new(Self::Name).text())
+            .col(ColumnDef::new(Self::Description).text())
+            .col(ColumnDef::new(Self::Level).integer())
+            .col(ColumnDef::new(Self::Source).text())
+            .col(ColumnDef::new(Self::Prerequisites).text())
+            .col(ColumnDef::new(Self::Type).string_len(9).not_null())
+            .col(ColumnDef::new(Self::NumberOfChoices).integer())
+            .col(ColumnDef::new(Self::Content).blob().not_null())
+            .build(SqliteQueryBuilder);
+        
+        Ok(())
     }
 
-    fn list_columns() -> Vec<Self> {
-        todo!()
-    }
-
-    fn id_variant() -> Self {
-        todo!()
-    }
-
-    fn table_variant() -> Self {
-        todo!()
+    fn table_iden() -> CustomIden {
+        CustomIden("feature".to_string())
     }
 }
 

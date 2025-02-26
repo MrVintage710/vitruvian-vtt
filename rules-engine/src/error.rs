@@ -20,4 +20,6 @@ pub enum VitruvianRulesEngineError {
     ModuleError(#[from] rusqlite::Error),
     #[error("There was an error while making a query: {0}")]
     QueryError(#[from] sea_query::error::Error),
+    #[error("There was an error packing the module: {0}")]
+    BincodeError(#[from] Box<bincode::ErrorKind>),
 }
