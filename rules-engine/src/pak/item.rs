@@ -1,3 +1,5 @@
+use std::{cell::RefCell, fs::File, io::{Cursor, Read, Seek, SeekFrom}};
+
 use serde::{Deserialize, Serialize};
 use crate::error::VitruvianRulesEngineResult;
 use super::{index::PakIndex, PakPointer};
@@ -19,6 +21,15 @@ impl PakVault {
             chunks : Vec::new(),
             size_in_bytes : 0,
         }
+    }
+    
+    pub fn pak_no_search<T: PakItemDef>(&mut self, item : T) -> VitruvianRulesEngineResult<PakVaultReference> {
+        let bytes = item.into_bytes()?;
+        let pointer = PakPointer::new(self.size_in_bytes, bytes.len() as u64);
+        self.size_in_bytes += bytes.len() as u64;
+        self.pak.extend(bytes);
+        self.chunks.push(PakVaultReference { pointer, indices: vec![] });
+        Ok(PakVaultReference { pointer, indices: vec![] })
     }
     
     pub fn pak<T : PakItemDef + PakItemSearchable>(&mut self, item : T) -> VitruvianRulesEngineResult<PakVaultReference> {
@@ -69,8 +80,8 @@ pub trait PakItemDef {
 pub trait PakItemRef<'de> : Sized {
     fn from_bytes(bytes: &'de [u8]) -> VitruvianRulesEngineResult<Self>;
     
-    fn from_pak(bytes: &'de [u8], pointer : PakPointer) -> VitruvianRulesEngineResult<Self> {
-        let data = &bytes[pointer.offset as usize..pointer.offset as usize + pointer.size as usize];
+    fn from_pak(pak : &'de [u8], pointer : PakPointer) -> VitruvianRulesEngineResult<Self> {
+        let data = &pak[pointer.offset as usize..pointer.offset as usize + pointer.size as usize];
         let res = Self::from_bytes(data)?;
         Ok(res)
     }
@@ -104,8 +115,8 @@ mod test {
     impl PakItemSearchable for Person {
         fn indices(&self) -> Vec<PakIndex> {
             vec![
-                PakIndex::new("first_name".to_string(), self.first_name.clone()),
-                PakIndex::new("last_name".to_string(), self.last_name.clone())
+                PakIndex::new("first_name".to_string(), self.first_name.clone().into()),
+                PakIndex::new("last_name".to_string(), self.last_name.clone().into())
             ]
         }
     }

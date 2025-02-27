@@ -1,12 +1,14 @@
 use std::{fs::File, io::BufReader};
 
 use meta::PakMeta;
+use serde::{Deserialize, Serialize};
 
 use crate::error::VitruvianRulesEngineResult;
 
 pub mod meta;
 pub mod item;
 pub mod index;
+pub mod value;
 
 //==============================================================================================
 //        Pak Create Function
@@ -40,7 +42,7 @@ impl PakFile {
 //        PakPointer
 //==============================================================================================
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct PakPointer {
     offset : u64,
     size : u64,
