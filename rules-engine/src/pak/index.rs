@@ -8,19 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{value::Value, PakPointer};
 
-#[derive(Serialize, Deserialize)]
-pub struct PakIndices {
-    indices : HashMap<Value, Vec<PakPointer>>
-}
-
-impl PakIndices {
-    
-    pub fn new() -> Self {
-        Self {
-            indices: HashMap::new(),
-        }
-    }
-}
+pub type PakIndices = HashMap<Value, Vec<PakPointer>>;
 
 //==============================================================================================
 //        PakIndex
@@ -28,8 +16,8 @@ impl PakIndices {
 
 #[derive(PartialEq, Debug, Clone, PartialOrd, Deserialize, Serialize)]
 pub struct PakIndex {
-    key : String,
-    value : Value
+    pub key : String,
+    pub value : Value
 }
 
 impl PakIndex {

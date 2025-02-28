@@ -1,69 +1,6 @@
-use std::{cell::RefCell, fs::File, io::{Cursor, Read, Seek, SeekFrom}};
-
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use crate::error::VitruvianRulesEngineResult;
 use super::{index::PakIndex, PakPointer};
-
-//==============================================================================================
-//        PakVault
-//==============================================================================================
-
-pub struct PakVault {
-    chunks : Vec<PakVaultReference>,
-    size_in_bytes : u64,
-    pak : Vec<u8>,
-}
-
-impl PakVault {
-    pub fn new() -> Self {
-        Self {
-            pak : Vec::new(),
-            chunks : Vec::new(),
-            size_in_bytes : 0,
-        }
-    }
-    
-    pub fn pak_no_search<T: PakItemDef>(&mut self, item : T) -> VitruvianRulesEngineResult<PakVaultReference> {
-        let bytes = item.into_bytes()?;
-        let pointer = PakPointer::new(self.size_in_bytes, bytes.len() as u64);
-        self.size_in_bytes += bytes.len() as u64;
-        self.pak.extend(bytes);
-        self.chunks.push(PakVaultReference { pointer, indices: vec![] });
-        Ok(PakVaultReference { pointer, indices: vec![] })
-    }
-    
-    pub fn pak<T : PakItemDef + PakItemSearchable>(&mut self, item : T) -> VitruvianRulesEngineResult<PakVaultReference> {
-        let indices = item.indices();
-        let bytes = item.into_bytes()?;
-        let pointer = PakPointer::new(self.size_in_bytes, bytes.len() as u64);
-        self.size_in_bytes += bytes.len() as u64;
-        self.pak.extend(bytes);
-        self.chunks.push(PakVaultReference { pointer, indices: indices.clone() });
-        Ok(PakVaultReference { pointer, indices })
-    }
-    
-    pub fn unpak<'d, T>(&'d self, pointer : &PakPointer) -> VitruvianRulesEngineResult<T> where T : PakItemRef<'d> {
-        let res = T::from_pak(&self.pak, *pointer)?;
-        Ok(res)
-    }
-    
-    pub fn size(&self) -> u64 {
-        self.size_in_bytes
-    }
-    
-    pub fn len(&self) -> usize {
-        self.chunks.len()
-    }
-}
-
-//==============================================================================================
-//        PakVaultReference
-//==============================================================================================
-
-pub struct PakVaultReference {
-    pub pointer : PakPointer,
-    pub indices : Vec<PakIndex>
-}
 
 //==============================================================================================
 //        PakItem Trait
@@ -77,19 +14,19 @@ pub trait PakItemDef {
     fn into_bytes(&self) -> VitruvianRulesEngineResult<Vec<u8>>;
 }
 
-pub trait PakItemRef<'de> : Sized {
-    fn from_bytes(bytes: &'de [u8]) -> VitruvianRulesEngineResult<Self>;
+pub trait PakItemRef: Sized {
+    fn from_bytes(bytes: &[u8]) -> VitruvianRulesEngineResult<Self>;
     
-    fn from_pak(pak : &'de [u8], pointer : PakPointer) -> VitruvianRulesEngineResult<Self> {
+    fn from_pak(pak : &[u8], pointer : PakPointer) -> VitruvianRulesEngineResult<Self> {
         let data = &pak[pointer.offset as usize..pointer.offset as usize + pointer.size as usize];
         let res = Self::from_bytes(data)?;
         Ok(res)
     }
 }
 
-impl <'de, T> PakItemRef<'de> for T where T : Deserialize<'de> {
-    fn from_bytes(bytes: &'de [u8]) -> VitruvianRulesEngineResult<Self> {
-        let obj : Self = bincode::deserialize::<Self>(bytes).unwrap();
+impl <T> PakItemRef for T where T : DeserializeOwned {
+    fn from_bytes(bytes: &[u8]) -> VitruvianRulesEngineResult<Self> {
+        let obj : Self = bincode::deserialize::<Self>(bytes)?;
         Ok(obj)
     }
 }
@@ -104,6 +41,8 @@ impl <T> PakItemDef for T where T : Serialize {
 mod test {
 
     use serde::{Deserialize, Serialize};
+    use crate::pak::PakBuilder;
+
     use super::*;
     
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -133,12 +72,12 @@ mod test {
             last_name: "Doe".to_string(),
         };
         
-        let mut vault = PakVault::new();
+        let mut vault = PakBuilder::new();
         vault.pak(person1.clone()).unwrap();
         vault.pak(person2.clone()).unwrap();
         
         assert_eq!(
-            vault.pak,
+            vault.vault,
             vec![
                 bincode::serialize(&person1).unwrap(),
                 bincode::serialize(&person2).unwrap()
@@ -158,7 +97,7 @@ mod test {
             last_name: "Doe".to_string(),
         };
         
-        let mut vault = PakVault::new();
+        let mut vault = PakBuilder::new();
         let reference1 = vault.pak(person1.clone()).unwrap();
         let reference2 = vault.pak(person2.clone()).unwrap();
         
