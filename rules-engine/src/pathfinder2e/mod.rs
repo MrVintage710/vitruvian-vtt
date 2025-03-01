@@ -1,6 +1,7 @@
 use mlua::{FromLua, IntoLua, Value};
 use serde::{Deserialize, Serialize};
-use crate::common::DiceAmount;
+use strum::Display;
+use crate::{common::DiceAmount, pak::value::PakValue as PakValue};
 
 pub mod class;
 pub mod action;
@@ -34,8 +35,21 @@ impl Attribute {
             "con" => Some(Attribute::Constitution),
             "int" => Some(Attribute::Intelligence),
             "wis" => Some(Attribute::Wisdom),
-            "char" => Some(Attribute::Charisma),
+            "cha" => Some(Attribute::Charisma),
             _ => None
+        }
+    }
+}
+
+impl Into<PakValue> for Attribute {
+    fn into(self) -> PakValue {
+        match self {
+            Attribute::Strength => "str".into(),
+            Attribute::Dexterity => "dex".into(),
+            Attribute::Constitution => "con".into(),
+            Attribute::Intelligence => "int".into(),
+            Attribute::Wisdom => "wis".into(),
+            Attribute::Charisma => "cha".into(),
         }
     }
 }
@@ -48,7 +62,7 @@ impl IntoLua for Attribute {
             Attribute::Constitution => Ok(Value::String(lua.create_string("con")?)),
             Attribute::Intelligence => Ok(Value::String(lua.create_string("int")?)),
             Attribute::Wisdom => Ok(Value::String(lua.create_string("wis")?)),
-            Attribute::Charisma => Ok(Value::String(lua.create_string("char")?)),
+            Attribute::Charisma => Ok(Value::String(lua.create_string("cha")?)),
         }
     }
 }
@@ -66,11 +80,21 @@ impl FromLua for Attribute {
 }
 
 // Attribue Boost
-#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, Display)]
 pub enum AttributeBoost {
     Single(Attribute),
     Double(Attribute, Attribute),
     Free
+}
+
+impl Into<PakValue> for AttributeBoost {
+    fn into(self) -> PakValue {
+        match self {
+            AttributeBoost::Single(attribute) => attribute.into(),
+            AttributeBoost::Double(attribute, attribute1) => (attribute, attribute1).into(),
+            AttributeBoost::Free => "free".into(),
+        }
+    }
 }
 
 impl IntoLua for AttributeBoost {

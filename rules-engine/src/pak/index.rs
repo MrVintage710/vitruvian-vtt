@@ -6,9 +6,9 @@ use std::{collections::HashMap};
 
 use serde::{Deserialize, Serialize};
 
-use super::{value::Value, PakPointer};
+use super::{value::PakValue, PakPointer};
 
-pub type PakIndices = HashMap<Value, Vec<PakPointer>>;
+pub type PakIndices = HashMap<PakValue, Vec<PakPointer>>;
 
 //==============================================================================================
 //        PakIndex
@@ -17,14 +17,14 @@ pub type PakIndices = HashMap<Value, Vec<PakPointer>>;
 #[derive(PartialEq, Debug, Clone, PartialOrd, Deserialize, Serialize)]
 pub struct PakIndex {
     pub key : String,
-    pub value : Value
+    pub value : PakValue
 }
 
 impl PakIndex {
-    pub fn new(key : String, value : Value) -> Self {
+    pub fn new(key : &str, value : impl Into<PakValue>) -> Self {
         Self {
-            key,
-            value,
+            key: key.to_string(),
+            value: value.into(),
         }
     }
 }

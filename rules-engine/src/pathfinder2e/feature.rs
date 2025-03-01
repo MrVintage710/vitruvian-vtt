@@ -3,7 +3,7 @@ use sea_query::{ColumnDef, Iden, SqliteQueryBuilder};
 use serde::{Deserialize, Serialize};
 use strum::{EnumDiscriminants, EnumIter};
 
-use crate::{error::VitruvianRulesEngineResult, item::{CustomIden, ItemTable, RulesItem, RulesItemIdentifier}};
+use crate::{error::VitruvianRulesEngineResult, item::{CustomIden, ItemTable, RulesItem, RulesItemIdentifier}, pak::{index::PakIndex, item::PakItemSearchable}};
 
 use super::{action::Action, passive::Passive, source::SourceRef};
 
@@ -40,21 +40,31 @@ pub enum Feature {
     Reference(String)
 }
 
-// impl RulesItem for (RulesItemIdentifier, Feature) {
-//     type Table = FeatureTable;
+impl Feature {
+    pub fn meta(&self) -> Option<&FeatureMeta> {
+        match self {
+            Feature::Group { meta, .. } => Some(meta),
+            Feature::Choice { meta, .. } => Some(meta),
+            Feature::Action { meta, .. } => Some(meta),
+            Feature::Passive { meta, .. } => Some(meta),
+            Feature::Reference(_) => None,
+        }
+    }
+}
 
-//     fn id(&self) -> Option<&crate::item::RulesItemIdentifier> {
-        
-//     }
-
-//     fn from_row(row: &rusqlite::Row) -> VitruvianRulesEngineResult<Self> {
-//         todo!()
-//     }
-
-//     fn map_value(&self, col : Self::Table) -> sea_query::SimpleExpr {
-//         todo!()
-//     }
-// }
+impl PakItemSearchable for Feature {
+    fn indices(&self) -> Vec<crate::pak::index::PakIndex> {
+        let Some(meta) = self.meta() else { return vec![];};
+        let mut indices = vec![
+            PakIndex::new("name", meta.name.as_ref()),
+            PakIndex::new("description", meta.description.as_ref()),
+            PakIndex::new("source", meta.source.as_ref()),
+            PakIndex::new("prerequisite", meta.prerequisites.as_ref()),
+            PakIndex::new("level", meta.level.as_ref()),
+        ];
+        indices
+    }
+}
 
 impl IntoLua for Feature {
     fn into_lua(self, lua: &Lua) -> mlua::Result<mlua::Value> {

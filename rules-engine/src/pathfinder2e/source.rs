@@ -2,8 +2,10 @@ use mlua::{FromLua, IntoLua};
 use serde::{Deserialize, Serialize};
 use strum::{EnumDiscriminants, IntoDiscriminant, IntoStaticStr};
 
+use crate::pak::value::PakValue;
 
-#[derive(Deserialize, Serialize, Debug, EnumDiscriminants)]
+
+#[derive(Deserialize, Serialize, Debug, EnumDiscriminants, IntoStaticStr)]
 #[strum_discriminants(name(SourceBook))]
 #[strum_discriminants(derive(IntoStaticStr))]
 pub enum SourceRef {
@@ -19,6 +21,13 @@ impl SourceRef {
             SourceRef::PlayerCore2(v) => *v,
             SourceRef::WarOfImmortals(v) => *v,
         }
+    }
+}
+
+impl Into<PakValue> for SourceRef {
+    fn into(self) -> PakValue {
+        let s : &'static str = self.into();
+        PakValue::String(s.to_string())
     }
 }
 

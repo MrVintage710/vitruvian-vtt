@@ -54,8 +54,8 @@ mod test {
     impl PakItemSearchable for Person {
         fn indices(&self) -> Vec<PakIndex> {
             vec![
-                PakIndex::new("first_name".to_string(), self.first_name.clone().into()),
-                PakIndex::new("last_name".to_string(), self.last_name.clone().into())
+                PakIndex::new("first_name", self.first_name.clone()),
+                PakIndex::new("last_name", self.last_name.clone())
             ]
         }
     }

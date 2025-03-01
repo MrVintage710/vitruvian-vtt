@@ -4,7 +4,7 @@ use index::{PakIndex, PakIndices};
 use item::{PakItemDef, PakItemRef, PakItemSearchable};
 use meta::{PakMeta, PakSizing};
 use serde::{Deserialize, Serialize};
-use value::Value;
+use value::PakValue;
 
 use crate::error::VitruvianRulesEngineResult;
 
@@ -66,7 +66,7 @@ impl Pak {
         Ok(indices)
     }
     
-    pub fn search<T>(&self, key : &str, value : impl Into<Value>) -> VitruvianRulesEngineResult<Vec<T>> where T : PakItemRef {
+    pub fn search<T>(&self, key : &str, value : impl Into<PakValue>) -> VitruvianRulesEngineResult<Vec<T>> where T : PakItemRef {
         let value = value.into();
         let index_types = self.fetch_indices()?;
         let Some(pointer) = index_types.get(key) else {return Ok(vec![])};
@@ -311,8 +311,8 @@ mod tests {
     impl PakItemSearchable for Person {
         fn indices(&self) -> Vec<PakIndex> {
             vec![
-                PakIndex::new("first_name".to_string(), self.first_name.clone().into()),
-                PakIndex::new("last_name".to_string(), self.last_name.clone().into())
+                PakIndex::new("first_name", &self.first_name),
+                PakIndex::new("last_name", &self.last_name)
             ]
         }
     }
@@ -330,6 +330,7 @@ mod tests {
         initialize();   
         let pak = Pak::open("test.pak").unwrap();
         let person : Person = pak.read(PakPointer::new(0, 23)).unwrap();
+        assert_eq!(person.first_name, "John".to_string());
     }
     
     #[test]

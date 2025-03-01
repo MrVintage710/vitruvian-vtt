@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use mlua::{FromLua, IntoLua};
 use serde::{Deserialize, Serialize};
+use crate::pak::{index::PakIndex, item::PakItemSearchable};
+
 use super::{feature::Feature, skill::Skill, source::SourceRef, AttributeBoost, Proficiency};
 
 #[derive(Deserialize, Serialize)]
@@ -30,6 +32,16 @@ pub struct ClassMeta {
     pub skill_proficiencies : HashMap<Skill, Proficiency>,
     pub number_of_skills : u8,
     pub perception_proficiency : Proficiency,
+}
+
+impl PakItemSearchable for ClassMeta {
+    fn indices(&self) -> Vec<PakIndex> {
+        let indices = vec![
+            PakIndex::new("source", self.source.as_ref()),
+            PakIndex::new("key_attribute", self.key_attribute)
+        ];
+        indices
+    }
 }
 
 impl IntoLua for ClassMeta {
