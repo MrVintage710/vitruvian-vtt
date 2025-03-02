@@ -1,48 +1,72 @@
-use std::{cmp::Ordering, collections::VecDeque, fmt::Debug, path::Display, rc::Rc};
+use std::{cmp::Ordering, collections::{HashMap, VecDeque}, fmt::Debug, path::Display, rc::Rc};
 
-use super::{value::PakValue, PakPointer};
+use serde::{Deserialize, Serialize};
+
+use crate::error::VitruvianRulesEngineResult;
+
+use super::{value::PakValue, PakBuilder, PakPointer};
 
 
 //==============================================================================================
-//        PakTree
+//        PakTreeMeta
+//==============================================================================================
+
+#[derive(Deserialize, Serialize)]
+pub struct PakTreeMeta {
+    pages: HashMap<usize, PakPointer>,
+}
+
+//==============================================================================================
+//        PakTreeBuilder
 //==============================================================================================
 
 /// This is a pretty limited b-tree implementation. Since the end product is a read only datastructure, deletion is not supported. This
 /// has been optimized for read performance and memory efficiency.
 #[derive(Debug)]
-pub struct PakTree {
+pub struct PakTreeBuilder {
     pages : Vec<PakTreePage>,
     max_size: usize,
 }
 
-impl PakTree {
+impl PakTreeBuilder {
     pub fn new(power_of_two: u32) -> Self {
-        PakTree {
+        PakTreeBuilder {
             pages: vec![PakTreePage::new()],
             max_size : 2usize.pow(power_of_two),
         }
     }
     
-    pub fn access<'t>(&'t mut self) -> PakTreeAccess<'t> {
-        PakTreeAccess {
+    pub fn access<'t>(&'t mut self) -> PakTreeBuilderAccess<'t> {
+        PakTreeBuilderAccess {
             current: 0,
             table: self,
             trail : VecDeque::new()
         }
     }
+    
+    pub fn into_pak(self, pak : &mut PakBuilder) -> VitruvianRulesEngineResult<PakPointer> {
+        
+        let mut page_map = HashMap::<usize, PakPointer>::new();
+        for (index, page) in self.pages.into_iter().enumerate() {
+            let pointer = pak.pak_no_search(page)?;
+            page_map.insert(index as usize, pointer);
+        }
+        
+        pak.pak_no_search(PakTreeMeta{ pages : page_map})
+    } 
 }
 
 //==============================================================================================
 //        PakTreeAccess
 //==============================================================================================
 
-pub struct PakTreeAccess<'t> {
-    table: &'t mut PakTree,
+pub struct PakTreeBuilderAccess<'t> {
+    table: &'t mut PakTreeBuilder,
     current: usize,
     trail : VecDeque<usize>
 }
 
-impl PakTreeAccess<'_> {    
+impl PakTreeBuilderAccess<'_> {    
     // fn root(&mut self) -> &mut Self {
     //     self.current = self.table.root;
     //     self
@@ -133,7 +157,7 @@ impl PakTreeAccess<'_> {
 //        PakTreePage
 //==============================================================================================
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 struct PakTreePage {
     values: VecDeque<PakTreePageEntry>,
     next: Option<usize>,
@@ -198,6 +222,7 @@ enum PakTreeStatus {
 //        PakTreePageEntry
 //==============================================================================================
 
+#[derive(Serialize, Deserialize)]
 pub struct PakTreePageEntry {
     key: PakValue,
     values: Vec<PakPointer>,
@@ -253,12 +278,12 @@ impl Ord for PakTreePageEntry {
 mod tests {
     use crate::pak::PakPointer;
 
-    use super::PakTree;
+    use super::PakTreeBuilder;
 
    
     #[test]
     fn insert_into_pak_tree() {
-        let mut tree = PakTree::new(2);
+        let mut tree = PakTreeBuilder::new(2);
         tree.access().insert(10, PakPointer::default())
             .insert(20, PakPointer::default())
             .insert(30, PakPointer::default())
