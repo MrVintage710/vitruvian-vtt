@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 use strum::Display;
 
-#[derive(Deserialize, Serialize, PartialEq, Clone, PartialOrd, Debug, Display, Eq, Hash, Default)]
+#[derive(Deserialize, Serialize, PartialEq, Clone, PartialOrd, Debug, Display, Eq, Hash, Default, Ord)]
 pub enum PakValue {
     String(String),
     F64(u64),
@@ -109,6 +109,46 @@ impl PakValue {
             PakValue::Boolean(value) => Some(*value),
             _ => None,
         }
+    }
+    
+    pub fn f32(value : f32) -> Self {
+        PakValue::F32(value.to_bits())
+    }
+    
+    pub fn f64(value : f64) -> Self {
+        PakValue::F64(value.to_bits())
+    }
+    
+    pub fn i8(value : i8) -> Self {
+        PakValue::I8(value)
+    }
+    
+    pub fn i16(value : i16) -> Self {
+        PakValue::I16(value)
+    }
+    
+    pub fn i32(value : i32) -> Self {
+        PakValue::I32(value)
+    }
+    
+    pub fn i64(value : i64) -> Self {
+        PakValue::I64(value)
+    }
+
+    pub fn u8(value : u8) -> Self {
+        PakValue::U8(value)
+    }
+    
+    pub fn u16(value : u16) -> Self {
+        PakValue::U16(value)
+    }
+    
+    pub fn u32(value : u32) -> Self {
+        PakValue::U32(value)
+    }
+    
+    pub fn u64(value : u64) -> Self {
+        PakValue::U64(value)
     }
 }
 

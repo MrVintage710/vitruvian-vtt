@@ -12,6 +12,7 @@ pub mod meta;
 pub mod item;
 pub mod index;
 pub mod value;
+pub mod btree;
 
 //==============================================================================================
 //        Pak File
