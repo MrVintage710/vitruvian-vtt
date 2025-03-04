@@ -131,7 +131,10 @@ impl PakQueryExpression for PakQuery {
                 let tree = pak.get_tree(key)?;
                 tree.get(pak_value)
             },
-            PakQuery::GreaterThan(key, pak_value) => todo!(),
+            PakQuery::GreaterThan(key, pak_value) => {
+                let tree = pak.get_tree(key)?;
+                tree.get_greater(pak_value)
+            },
             PakQuery::LessThan(key, pak_value) => {
                 let tree = pak.get_tree(key)?;
                 tree.get_less(pak_value)
@@ -213,10 +216,10 @@ mod tests {
         
         let pak = Pak::open("test.pak").unwrap();
         
-        let query = equals("first_name", "John") & less_than("age", 28);
+        let query = greater_than("age", 26);
         
         let results = pak.query::<Person>(query).unwrap();
-        println!("{results:?}");
+        println!("RESULTS {results:?}");
         assert_eq!(results.len(), 2);
     }
 }

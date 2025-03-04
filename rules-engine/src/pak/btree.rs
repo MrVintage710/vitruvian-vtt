@@ -20,7 +20,6 @@ pub struct PakTree<'p> {
 impl <'p> PakTree<'p> {
     pub fn new(pak: &'p Pak, key : &str) -> VitruvianRulesEngineResult<PakTree<'p>> {
         let indices = pak.fetch_indices()?;
-        println!("{:?}", indices);
         let pointer = indices.get(key).unwrap();
         let meta : PakTreeMeta = pak.read_err(*pointer)?;
         
@@ -46,7 +45,8 @@ impl <'p> PakTree<'p> {
             } else if &entry.key > value {
                 if let Some(index) = entry.previous {
                     let pointer = self.meta.pages.get(&index).unwrap();
-                    return self.get_r(value, *pointer, set);
+                    self.get_r(value, *pointer, set)?;
+                    return Ok(());
                 }
             } else {
                 entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
@@ -65,38 +65,84 @@ impl <'p> PakTree<'p> {
     pub fn get_less(&self, value : &PakValue) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
         let pointer = self.meta.pages.get(&0).unwrap();
         let mut results = HashSet::new();
-        self.get_less_r(value, *pointer, &mut results)?;
+        self.get_less_r(value, *pointer, &mut results, false)?;
         println!("GET LESS {value:?} -> {results:?}");
         Ok(results)
     }
     
-    fn get_less_r(&self, value : &PakValue, current_page : PakPointer, set : &mut HashSet<PakPointer>) -> VitruvianRulesEngineResult<()> {
+    pub fn get_less_eq(&self, value : &PakValue) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
+        let pointer = self.meta.pages.get(&0).unwrap();
+        let mut results = HashSet::new();
+        self.get_less_r(value, *pointer, &mut results, true)?;
+        println!("GET LESS EQ {value:?} -> {results:?}");
+        Ok(results)
+    }
+    
+    fn get_less_r(&self, value : &PakValue, current_page : PakPointer, set : &mut HashSet<PakPointer>, match_eq : bool) -> VitruvianRulesEngineResult<()> {
         let page : PakTreePage = self.pak.read_err(current_page)?;
         
         for entry in page.values {
             if &entry.key > value {
                 continue;
             } else if &entry.key < value {
-                println!("COMPARING {} < {value:?} -> {}", entry.key.as_u32().unwrap(), &entry.key < value);
                 entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
                 if let Some(index) = entry.previous {
                     let pointer = self.meta.pages.get(&index).unwrap();
-                    self.get_less_r(value, *pointer, set)?;
+                    self.get_less_r(value, *pointer, set, match_eq)?;
                 }
                 continue;
             } else {
+                if match_eq {
+                    entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
+                }
                 continue;
             }
         }
         
         if let Some(index) = page.next {
             let pointer = self.meta.pages.get(&index).unwrap();
-            return self.get_less_r(value, *pointer, set);
+            return self.get_less_r(value, *pointer, set, match_eq);
         }
         
         Ok(())
     }
     
+    pub fn get_greater(&self, value : &PakValue) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
+        let pointer = self.meta.pages.get(&0).unwrap();
+        let mut results = HashSet::new();
+        self.get_greater_r(value, *pointer, &mut results, false)?;
+        println!("GET GREATER {value:?} -> {results:?}");
+        Ok(results)
+    }
+    
+    fn get_greater_r(&self, value : &PakValue, current_page : PakPointer, set : &mut HashSet<PakPointer>, match_eq : bool) -> VitruvianRulesEngineResult<()> {
+        let page : PakTreePage = self.pak.read_err(current_page)?;
+        
+        for entry in page.values {
+            if &entry.key < value {
+                continue;
+            } else if &entry.key > value {
+                entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
+                if let Some(index) = entry.previous {
+                    let pointer = self.meta.pages.get(&index).unwrap();
+                    self.get_less_r(value, *pointer, set, match_eq)?;
+                }
+                continue;
+            } else {
+                if match_eq {
+                    entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
+                }
+                continue;
+            }
+        }
+        
+        if let Some(index) = page.next {
+            let pointer = self.meta.pages.get(&index).unwrap();
+            return self.get_greater_r(value, *pointer, set, match_eq);
+        }
+        
+        Ok(())
+    }
 }
 
 //==============================================================================================

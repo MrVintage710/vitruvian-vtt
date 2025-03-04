@@ -87,15 +87,15 @@ pub enum AttributeBoost {
     Free
 }
 
-impl Into<PakValue> for AttributeBoost {
-    fn into(self) -> PakValue {
-        match self {
-            AttributeBoost::Single(attribute) => attribute.into(),
-            AttributeBoost::Double(attribute, attribute1) => (attribute, attribute1).into(),
-            AttributeBoost::Free => "free".into(),
-        }
-    }
-}
+// impl Into<PakValue> for AttributeBoost {
+//     fn into(self) -> PakValue {
+//         match self {
+//             AttributeBoost::Single(attribute) => attribute.into(),
+//             AttributeBoost::Double(attribute, attribute1) => (attribute, attribute1).into(),
+//             AttributeBoost::Free => "free".into(),
+//         }
+//     }
+// }
 
 impl IntoLua for AttributeBoost {
     fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<Value> { 
