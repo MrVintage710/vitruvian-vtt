@@ -1,8 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, fs::{self, File}, io::{BufReader, Read, Seek, SeekFrom}, path::Path};
 
+use btree::{PakTree, PakTreeBuilder};
 use index::{PakIndex, PakIndices};
 use item::{PakItemDef, PakItemRef, PakItemSearchable};
 use meta::{PakMeta, PakSizing};
+use query::PakQueryExpression;
 use serde::{Deserialize, Serialize};
 use value::PakValue;
 
@@ -13,6 +15,7 @@ pub mod item;
 pub mod index;
 pub mod value;
 pub mod btree;
+pub mod query;
 
 //==============================================================================================
 //        Pak File
@@ -41,7 +44,7 @@ impl Pak {
         Ok(Self { sizing, meta, stream : RefCell::new(stream) })
     }
     
-    pub fn read_err<T>(&self, pointer : PakPointer) -> VitruvianRulesEngineResult<T> where T : PakItemRef {
+    pub(crate) fn read_err<T>(&self, pointer : PakPointer) -> VitruvianRulesEngineResult<T> where T : PakItemRef {
         let mut stream = self.stream.borrow_mut();
         let mut buffer = vec![0u8; pointer.size as usize];
         stream.seek(SeekFrom::Start(pointer.offset + self.get_vault_start()))?;
@@ -50,12 +53,16 @@ impl Pak {
         Ok(res)
     }
     
-    pub fn read<T>(&self, pointer : PakPointer) -> Option<T> where T : PakItemRef {
+    pub(crate) fn read<T>(&self, pointer : PakPointer) -> Option<T> where T : PakItemRef {
         let res = self.read_err(pointer);
         match res {
             Ok(res) => Some(res),
             Err(_) => None,
         }
+    }
+    
+    pub(crate) fn get_tree(&self, key : &str) -> VitruvianRulesEngineResult<PakTree> {
+        PakTree::new(self, key)
     }
     
     pub fn fetch_indices(&self) -> VitruvianRulesEngineResult<HashMap<String, PakPointer>> {
@@ -65,6 +72,12 @@ impl Pak {
         stream.read_exact(&mut buffer)?;
         let indices = bincode::deserialize(&buffer)?;
         Ok(indices)
+    }
+    
+    pub fn query<T>(&self, query : impl PakQueryExpression) -> VitruvianRulesEngineResult<Vec<T>> where T : PakItemRef  {
+        let pointers = query.execute(self)?;
+        let values = pointers.into_iter().filter_map(|pointer| self.read::<T>(pointer)).collect::<Vec<_>>();
+        Ok(values)
     }
     
     pub fn search<T>(&self, key : &str, value : impl Into<PakValue>) -> VitruvianRulesEngineResult<Vec<T>> where T : PakItemRef {
@@ -143,7 +156,7 @@ impl PakBuilder {
     }
     
     pub fn pak<T : PakItemDef + PakItemSearchable>(&mut self, item : T) -> VitruvianRulesEngineResult<PakVaultReference> {
-        let indices = item.indices();
+        let indices = item.get_indices();
         let bytes = item.into_bytes()?;
         let pointer = PakPointer::new(self.size_in_bytes, bytes.len() as u64);
         self.size_in_bytes += bytes.len() as u64;
@@ -193,25 +206,25 @@ impl PakBuilder {
     }
     
     pub fn build_in_memory(mut self)  -> VitruvianRulesEngineResult<(Vec<u8>, PakSizing, PakMeta)> {
-        let mut map : HashMap<String, PakIndices> = HashMap::new();
+        let mut map : HashMap<String, PakTreeBuilder> = HashMap::new();
+        println!("{:?}", self.chunks);
         for chunk in &self.chunks {
-            for indices in &chunk.indices{
-                map.entry(indices.key.clone())
-                    .or_insert(HashMap::new())
-                    .entry(indices.value.clone())
-                    .or_insert(vec![])
-                    .push(chunk.pointer.clone())
+            for index in &chunk.indices{
+                map.entry(index.key.clone())
+                    .or_insert(PakTreeBuilder::new(6))
+                    .access()
+                    .insert(index.value.clone(), chunk.pointer)
                 ;
             }
         }
         
-        println!("{:?}", map);
-        
         let mut pointer_map : HashMap<String, PakPointer> = HashMap::new();
-        for (key, value) in map {
-            let pointer = self.pak_no_search(value)?;
+        for (key, tree) in map {
+            let pointer = tree.into_pak(&mut self)?;
             pointer_map.insert(key, pointer);
         }
+        
+        println!("{:?}", pointer_map);
         
         let meta = PakMeta {
             name: self.name,
@@ -230,8 +243,6 @@ impl PakBuilder {
         let mut meta_out = bincode::serialize(&meta)?;
         let mut pointer_map_out = bincode::serialize(&pointer_map)?;
         let mut vault_out = bincode::serialize(&self.vault)?;
-        
-        println!("LEN {} {}", pointer_map_out.len(), bincode::serialized_size(&pointer_map)?);
         
         let mut out = Vec::<u8>::new();
         out.append(&mut sizing_out);
@@ -259,6 +270,7 @@ impl PakBuilder {
 //        PakVaultReference
 //==============================================================================================
 
+#[derive(Debug)]
 pub struct PakVaultReference {
     pub pointer : PakPointer,
     pub indices : Vec<PakIndex>
@@ -310,11 +322,11 @@ mod tests {
     }
     
     impl PakItemSearchable for Person {
-        fn indices(&self) -> Vec<PakIndex> {
-            vec![
-                PakIndex::new("first_name", &self.first_name),
-                PakIndex::new("last_name", &self.last_name)
-            ]
+        fn get_indices(&self) -> Vec<PakIndex> {
+            let mut indices = Vec::new();
+            indices.push(PakIndex::new("first_name", self.first_name.clone()));
+            indices.push(PakIndex::new("last_name", self.last_name.clone()));
+            Vec::new()
         }
     }
     
@@ -328,7 +340,7 @@ mod tests {
     
     #[test]
     fn test_pak_read() { 
-        initialize();   
+        initialize();
         let pak = Pak::open("test.pak").unwrap();
         let person : Person = pak.read(PakPointer::new(0, 23)).unwrap();
         assert_eq!(person.first_name, "John".to_string());
@@ -340,6 +352,5 @@ mod tests {
         let pak = Pak::open("test.pak").unwrap();
         let res : Vec<Person> = pak.search("last_name", "Doe").unwrap();
         assert_eq!(res.len(), 2);
-        println!("{res:?}")
     }
 }

@@ -154,6 +154,7 @@ impl PakValue {
 
 impl<'s> From<&'s str> for PakValue {
     fn from(value: &'s str) -> Self {
+        println!("FROM STRING");
         PakValue::String(value.to_string())
     }
 }
@@ -236,18 +237,6 @@ impl <T> From<Option<T>> for PakValue where T : Into<PakValue> {
             Some(value) => value.into(),
             None => PakValue::Void,
         }
-    }
-}
-
-impl <T> From<&T> for PakValue where T : Into<PakValue> {
-    fn from(value: &T) -> Self {
-        value.into()
-    }
-}
-
-impl <T> From<&mut T> for PakValue where T : Into<PakValue> {
-    fn from(value: &mut T) -> Self {
-        value.into()
     }
 }
 

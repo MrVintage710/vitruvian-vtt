@@ -4,8 +4,60 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::VitruvianRulesEngineResult;
 
-use super::{value::PakValue, PakBuilder, PakPointer};
+use super::{value::PakValue, Pak, PakBuilder, PakPointer};
 
+
+//==============================================================================================
+//        PakTree
+//==============================================================================================
+
+pub struct PakTree<'p> {
+    pak : &'p Pak,
+    meta : PakTreeMeta,
+}
+
+impl <'p> PakTree<'p> {
+    pub fn new(pak: &'p Pak, key : &str) -> VitruvianRulesEngineResult<PakTree<'p>> {
+        let indices = pak.fetch_indices()?;
+        println!("{:?}", indices);
+        let pointer = indices.get(key).unwrap();
+        let meta : PakTreeMeta = pak.read_err(*pointer)?;
+        
+        Ok(PakTree {
+            pak,
+            meta,
+        })
+    }
+    
+    pub fn get(&self, value : &PakValue) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+        let pointer = self.meta.pages.get(&0).unwrap();
+        self.get_r(value, *pointer)
+    }
+    
+    fn get_r(&self, value : &PakValue, current_page : PakPointer) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+        let page : PakTreePage = self.pak.read_err(current_page)?;
+        
+        for entry in page.values {
+            if &entry.key < value {
+                continue;
+            } else if &entry.key > value {
+                if let Some(index) = entry.previous {
+                    let pointer = self.meta.pages.get(&index).unwrap();
+                    return self.get_r(value, *pointer);
+                }
+            } else {
+                return Ok(entry.values.clone());
+            }
+        }
+        
+        if let Some(index) = page.next {
+            let pointer = self.meta.pages.get(&index).unwrap();
+            return self.get_r(value, *pointer);
+        }
+        
+        Ok(vec![])
+    }
+}
 
 //==============================================================================================
 //        PakTreeMeta
@@ -119,8 +171,6 @@ impl PakTreeBuilderAccess<'_> {
     
     pub fn insert<K>(&mut self, key: K, value: PakPointer) -> &mut Self where K: Into<PakValue> {
         self.insert_entry(PakTreePageEntry::new(key.into(), value));
-        
-        println!("{:?} \n", self.table);
         self
     }
     
@@ -297,8 +347,5 @@ mod tests {
             .insert(35, PakPointer::default())
             .insert(45, PakPointer::default())
             .insert(46, PakPointer::default());
-        
-        println!("{:?}", tree)
-        
     }
 }

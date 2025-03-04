@@ -5,7 +5,7 @@ use strum::{EnumDiscriminants, IntoDiscriminant, IntoStaticStr};
 use crate::pak::value::PakValue;
 
 
-#[derive(Deserialize, Serialize, Debug, EnumDiscriminants, IntoStaticStr)]
+#[derive(Deserialize, Serialize, Debug, EnumDiscriminants, IntoStaticStr, Clone)]
 #[strum_discriminants(name(SourceBook))]
 #[strum_discriminants(derive(IntoStaticStr))]
 pub enum SourceRef {

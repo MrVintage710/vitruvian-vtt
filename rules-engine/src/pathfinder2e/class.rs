@@ -35,9 +35,9 @@ pub struct ClassMeta {
 }
 
 impl PakItemSearchable for ClassMeta {
-    fn indices(&self) -> Vec<PakIndex> {
+    fn get_indices(&self) -> Vec<PakIndex> {
         let indices = vec![
-            PakIndex::new("source", self.source.as_ref()),
+            PakIndex::new("source", self.source.clone()),
             PakIndex::new("key_attribute", self.key_attribute)
         ];
         indices

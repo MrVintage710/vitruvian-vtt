@@ -1,16 +1,8 @@
-//==============================================================================================
-//        PakIndexMap
-//==============================================================================================
-
 use std::{collections::HashMap};
-
 use serde::{Deserialize, Serialize};
-
 use super::{value::PakValue, PakPointer};
 
 pub type PakIndices = HashMap<PakValue, Vec<PakPointer>>;
-
-
 
 //==============================================================================================
 //        PakIndex
@@ -23,11 +15,31 @@ pub struct PakIndex {
 }
 
 impl PakIndex {
-    pub fn new(key : &str, value : impl Into<PakValue>) -> Self {
+    pub fn new<I, V>(key : I, value : V) -> Self where I : PakIndexIdentifier, V : Into<PakValue> {
         Self {
-            key: key.to_string(),
+            key: key.identifier().to_string(),
             value: value.into(),
         }
+    }
+}
+
+//==============================================================================================
+//        PakIndexIdentifier
+//==============================================================================================
+
+pub trait PakIndexIdentifier {
+    fn identifier(&self) -> &str;
+}
+
+impl PakIndexIdentifier for String {
+    fn identifier(&self) -> &str {
+        self
+    }
+}
+
+impl <'id> PakIndexIdentifier for &'id str {
+    fn identifier(&self) -> &str {
+        self
     }
 }
 

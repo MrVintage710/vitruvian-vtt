@@ -53,14 +53,14 @@ impl Feature {
 }
 
 impl PakItemSearchable for Feature {
-    fn indices(&self) -> Vec<crate::pak::index::PakIndex> {
+    fn get_indices(&self) -> Vec<crate::pak::index::PakIndex> {
         let Some(meta) = self.meta() else { return vec![];};
         let mut indices = vec![
-            PakIndex::new("name", meta.name.as_ref()),
-            PakIndex::new("description", meta.description.as_ref()),
-            PakIndex::new("source", meta.source.as_ref()),
-            PakIndex::new("prerequisite", meta.prerequisites.as_ref()),
-            PakIndex::new("level", meta.level.as_ref()),
+            PakIndex::new("name", meta.name.clone()),
+            PakIndex::new("description", meta.description.clone()),
+            PakIndex::new("source", meta.source.clone()),
+            PakIndex::new("prerequisite", meta.prerequisites.clone()),
+            PakIndex::new("level", meta.level.clone()),
         ];
         indices
     }

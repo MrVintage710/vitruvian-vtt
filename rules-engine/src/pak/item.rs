@@ -7,7 +7,7 @@ use super::{index::PakIndex, PakPointer};
 //==============================================================================================
 
 pub trait PakItemSearchable {
-    fn indices(&self) -> Vec<PakIndex>;
+    fn get_indices(&self) -> Vec<PakIndex>;
 }
 
 pub trait PakItemDef {
@@ -52,7 +52,7 @@ mod test {
     }
     
     impl PakItemSearchable for Person {
-        fn indices(&self) -> Vec<PakIndex> {
+        fn get_indices(&self) -> Vec<PakIndex> {
             vec![
                 PakIndex::new("first_name", self.first_name.clone()),
                 PakIndex::new("last_name", self.last_name.clone())
