@@ -216,7 +216,7 @@ mod tests {
         
         let pak = Pak::open("test.pak").unwrap();
         
-        let query = greater_than("age", 26);
+        let query = greater_than("age", 26) & equals("first_name", "John");
         
         let results = pak.query::<Person>(query).unwrap();
         println!("RESULTS {results:?}");
