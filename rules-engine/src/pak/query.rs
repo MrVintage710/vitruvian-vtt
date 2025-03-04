@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr};
+use std::{collections::HashSet, ops::{BitAnd, BitOr}};
 
 use crate::error::VitruvianRulesEngineResult;
 
@@ -9,16 +9,17 @@ use super::{value::PakValue, Pak, PakPointer};
 //==============================================================================================
 
 pub trait PakQueryExpression {
-    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<Vec<PakPointer>>;
+    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<HashSet<PakPointer>>;
 }
 
 pub struct PakQueryUnion(Box<dyn PakQueryExpression>, Box<dyn PakQueryExpression>);
 
 impl PakQueryExpression for PakQueryUnion {
-    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
         let results_a = self.0.execute(pak)?;
         let results_b = self.1.execute(pak)?;
-        let results = results_a.into_iter().chain(results_b.into_iter()).collect::<Vec<_>>();
+        println!("UNION: {results_a:?} AND {results_b:?}");
+        let results = results_a.into_iter().chain(results_b.into_iter()).collect::<HashSet<_>>();
         Ok(results)
     }
 }
@@ -54,11 +55,11 @@ impl <B> BitOr<B> for PakQuery where B : PakQueryExpression + 'static {
 pub struct PakQueryIntersection(Box::<dyn PakQueryExpression>, Box::<dyn PakQueryExpression>);
 
 impl PakQueryExpression for PakQueryIntersection {
-    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
         let results_a = self.0.execute(pak)?;
         let results_b = self.1.execute(pak)?;
-        let results = results_a.into_iter().zip(results_b.into_iter()).filter_map(|(a, b)| if a == b { Some(a) } else { None }).collect::<Vec<_>>();
-        Ok(results)
+        println!("INTERSECTION: {results_a:?} AND {results_b:?}");
+        Ok(results_a.into_iter().filter(|e| results_b.contains(e)).collect())
     }
 }
 
@@ -111,23 +112,31 @@ impl PakQuery {
     }
 }
 
+pub fn equals(key : &str, value : impl Into<PakValue>) -> PakQuery {
+    PakQuery::Equal(key.to_string(), value.into())
+}
+
+pub fn greater_than(key : &str, value : impl Into<PakValue>) -> PakQuery {
+    PakQuery::GreaterThan(key.to_string(), value.into())
+}
+
+pub fn less_than(key : &str, value : impl Into<PakValue>) -> PakQuery {
+    PakQuery::LessThan(key.to_string(), value.into())
+}
+
 impl PakQueryExpression for PakQuery {
-    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+    fn execute(&self, pak : &Pak) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
         match self {
             PakQuery::Equal(key, pak_value) => {
                 let tree = pak.get_tree(key)?;
                 tree.get(pak_value)
             },
             PakQuery::GreaterThan(key, pak_value) => todo!(),
-            PakQuery::LessThan(key, pak_value) => todo!(),
+            PakQuery::LessThan(key, pak_value) => {
+                let tree = pak.get_tree(key)?;
+                tree.get_less(pak_value)
+            },
         }
-    }
-}
-
-impl PakQuery {
-    
-    fn query_equal_r(current_page : PakPointer, ) {
-        
     }
 }
 
@@ -139,7 +148,7 @@ impl PakQuery {
 mod tests {
     use std::sync::Once;
     use serde::{Deserialize, Serialize};
-    use crate::pak::{index::PakIndex, item::PakItemSearchable, Pak, PakBuilder};
+    use crate::pak::{index::PakIndex, item::PakItemSearchable, query::*, Pak, PakBuilder};
     use super::PakQuery::{self};
     
     static INIT: Once = Once::new();
@@ -166,9 +175,16 @@ mod tests {
                 age: 28,
             };
             
+            let person4 = Person {
+                first_name: "John".to_string(),
+                last_name: "Jacob".to_string(),
+                age: 28,
+            };
+            
             builder.pak(person1).unwrap();
             builder.pak(person2).unwrap();
             builder.pak(person3).unwrap();
+            builder.pak(person4).unwrap();
             
             builder.build("test.pak").unwrap();
         });
@@ -186,6 +202,7 @@ mod tests {
             let mut indices = Vec::new();
             indices.push(PakIndex::new("first_name", self.first_name.clone()));
             indices.push(PakIndex::new("last_name", self.last_name.clone()));
+            indices.push(PakIndex::new("age", self.age));
             indices
         }
     }
@@ -196,9 +213,10 @@ mod tests {
         
         let pak = Pak::open("test.pak").unwrap();
         
-        let query = PakQuery::equals("last_name", "Doe");
+        let query = equals("first_name", "John") & less_than("age", 28);
         
         let results = pak.query::<Person>(query).unwrap();
+        println!("{results:?}");
         assert_eq!(results.len(), 2);
     }
 }

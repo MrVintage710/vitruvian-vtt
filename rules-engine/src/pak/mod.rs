@@ -109,7 +109,7 @@ impl Pak {
 //        PakPointer
 //==============================================================================================
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Serialize, Deserialize, Hash)]
 pub struct PakPointer {
     offset : u64,
     size : u64,
@@ -207,7 +207,6 @@ impl PakBuilder {
     
     pub fn build_in_memory(mut self)  -> VitruvianRulesEngineResult<(Vec<u8>, PakSizing, PakMeta)> {
         let mut map : HashMap<String, PakTreeBuilder> = HashMap::new();
-        println!("{:?}", self.chunks);
         for chunk in &self.chunks {
             for index in &chunk.indices{
                 map.entry(index.key.clone())
@@ -223,8 +222,6 @@ impl PakBuilder {
             let pointer = tree.into_pak(&mut self)?;
             pointer_map.insert(key, pointer);
         }
-        
-        println!("{:?}", pointer_map);
         
         let meta = PakMeta {
             name: self.name,

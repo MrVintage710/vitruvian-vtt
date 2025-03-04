@@ -1,5 +1,6 @@
-use std::{cmp::Ordering, collections::{HashMap, VecDeque}, fmt::Debug, path::Display, rc::Rc};
+use std::{cmp::Ordering, collections::{HashMap, HashSet, VecDeque}, fmt::Debug, path::Display, rc::Rc};
 
+use mlua::ffi::lua_geti;
 use serde::{Deserialize, Serialize};
 
 use crate::error::VitruvianRulesEngineResult;
@@ -29,12 +30,14 @@ impl <'p> PakTree<'p> {
         })
     }
     
-    pub fn get(&self, value : &PakValue) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+    pub fn get(&self, value : &PakValue) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
         let pointer = self.meta.pages.get(&0).unwrap();
-        self.get_r(value, *pointer)
+        let mut set = HashSet::new();
+        self.get_r(value, *pointer, &mut set)?;
+        Ok(set)
     }
     
-    fn get_r(&self, value : &PakValue, current_page : PakPointer) -> VitruvianRulesEngineResult<Vec<PakPointer>> {
+    fn get_r(&self, value : &PakValue, current_page : PakPointer, set : &mut HashSet<PakPointer>) -> VitruvianRulesEngineResult<()> {
         let page : PakTreePage = self.pak.read_err(current_page)?;
         
         for entry in page.values {
@@ -43,20 +46,57 @@ impl <'p> PakTree<'p> {
             } else if &entry.key > value {
                 if let Some(index) = entry.previous {
                     let pointer = self.meta.pages.get(&index).unwrap();
-                    return self.get_r(value, *pointer);
+                    return self.get_r(value, *pointer, set);
                 }
             } else {
-                return Ok(entry.values.clone());
+                entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
+                return Ok(());
             }
         }
         
         if let Some(index) = page.next {
             let pointer = self.meta.pages.get(&index).unwrap();
-            return self.get_r(value, *pointer);
+            self.get_r(value, *pointer, set)?;
         }
         
-        Ok(vec![])
+        Ok(())
     }
+    
+    pub fn get_less(&self, value : &PakValue) -> VitruvianRulesEngineResult<HashSet<PakPointer>> {
+        let pointer = self.meta.pages.get(&0).unwrap();
+        let mut results = HashSet::new();
+        self.get_less_r(value, *pointer, &mut results)?;
+        println!("GET LESS {value:?} -> {results:?}");
+        Ok(results)
+    }
+    
+    fn get_less_r(&self, value : &PakValue, current_page : PakPointer, set : &mut HashSet<PakPointer>) -> VitruvianRulesEngineResult<()> {
+        let page : PakTreePage = self.pak.read_err(current_page)?;
+        
+        for entry in page.values {
+            if &entry.key > value {
+                continue;
+            } else if &entry.key < value {
+                println!("COMPARING {} < {value:?} -> {}", entry.key.as_u32().unwrap(), &entry.key < value);
+                entry.values.clone().into_iter().for_each(|value| {set.insert(value);});
+                if let Some(index) = entry.previous {
+                    let pointer = self.meta.pages.get(&index).unwrap();
+                    self.get_less_r(value, *pointer, set)?;
+                }
+                continue;
+            } else {
+                continue;
+            }
+        }
+        
+        if let Some(index) = page.next {
+            let pointer = self.meta.pages.get(&index).unwrap();
+            return self.get_less_r(value, *pointer, set);
+        }
+        
+        Ok(())
+    }
+    
 }
 
 //==============================================================================================

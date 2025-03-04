@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 use strum::Display;
 
-#[derive(Deserialize, Serialize, PartialEq, Clone, PartialOrd, Debug, Display, Eq, Hash, Default, Ord)]
+#[derive(Deserialize, Serialize, Clone, PartialOrd, Debug, Display, Eq, Hash, Default, Ord)]
 pub enum PakValue {
     String(String),
     F64(u64),
@@ -24,6 +24,42 @@ pub enum PakValue {
     Group(Vec<PakValue>),
     #[default]
     Void
+}
+
+impl PartialEq for PakValue {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (PakValue::String(a), PakValue::String(b)) => a == b,
+            (PakValue::F64(a), PakValue::F64(b)) => a == b,
+            (PakValue::F32(a), PakValue::F32(b)) => a == b,
+            (PakValue::U64(a), PakValue::U64(b)) => a == b,
+            (PakValue::U32(a), PakValue::U32(b)) => a == b,
+            (PakValue::U16(a), PakValue::U16(b)) => a == b,
+            (PakValue::U8(a), PakValue::U8(b)) => a == b,
+            (PakValue::I64(a), PakValue::I64(b)) => a == b,
+            (PakValue::I32(a), PakValue::I32(b)) => a == b,
+            (PakValue::I16(a), PakValue::I16(b)) => a == b,
+            (PakValue::I8(a), PakValue::I8(b)) => a == b,
+            (PakValue::F64(a), PakValue::I64(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::I32(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::I32(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::I16(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::I16(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::I8(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::I8(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::U32(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::U32(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::U16(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::U16(b)) => f64::from_bits(*a) == (*b as f64),
+            (PakValue::F32(a), PakValue::U8(b)) => f32::from_bits(*a) == (*b as f32),
+            (PakValue::F64(a), PakValue::U8(b)) => f64::from_bits(*a) == (*b as f64),
+            
+            (PakValue::Boolean(a), PakValue::Boolean(b)) => a == b,
+            (PakValue::Group(a), PakValue::Group(b)) => a == b,
+            (PakValue::Void, PakValue::Void) => true,
+            _ => false,
+        }
+    }
 }
 
 impl PakValue {
@@ -152,9 +188,12 @@ impl PakValue {
     }
 }
 
+//==============================================================================================
+//        Easy of use Traits
+//==============================================================================================
+
 impl<'s> From<&'s str> for PakValue {
     fn from(value: &'s str) -> Self {
-        println!("FROM STRING");
         PakValue::String(value.to_string())
     }
 }
@@ -309,5 +348,21 @@ impl <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> From<(T1, T2, T3, T4, T
 impl <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> From<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)> for PakValue where T1 : Into<PakValue>, T2 : Into<PakValue>, T3 : Into<PakValue>, T4 : Into<PakValue>, T5 : Into<PakValue>, T6 : Into<PakValue>, T7 : Into<PakValue>, T8 : Into<PakValue>, T9 : Into<PakValue>, T10 : Into<PakValue>, T11 : Into<PakValue>, T12 : Into<PakValue>, T13 : Into<PakValue> {
     fn from(value: (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13)) -> Self {
         PakValue::Group(vec![value.0.into(), value.1.into(), value.2.into(), value.3.into(), value.4.into(), value.5.into(), value.6.into(), value.7.into(), value.8.into(), value.9.into(), value.10.into(), value.11.into(), value.12.into()])
+    }
+}
+
+//==============================================================================================
+//        Tests
+//==============================================================================================
+
+#[cfg(test)]
+mod tests {
+    use crate::pak::value::PakValue;
+
+    
+    #[test]
+    fn pak_value_compare() {
+        assert!(PakValue::f32(2.0) == PakValue::f32(2.0));
+        assert!(PakValue::i32(40) > PakValue::u32(50));
     }
 }
