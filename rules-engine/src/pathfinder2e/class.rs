@@ -1,9 +1,13 @@
 use std::collections::HashMap;
 use mlua::{FromLua, IntoLua};
 use serde::{Deserialize, Serialize};
-use crate::pak::{index::PakIndex, item::PakItemSearchable};
+use pak_db::{index::PakIndex, item::PakItemSearchable};
 
 use super::{feature::Feature, skill::Skill, source::SourceRef, AttributeBoost, Proficiency};
+
+//==============================================================================================
+//        Class
+//==============================================================================================
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

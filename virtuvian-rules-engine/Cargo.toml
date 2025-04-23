@@ -1,0 +1,10 @@
+[package]
+name = "virtuvian-rules-engine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mlua = { version = "0.10.3", features = ["serialize", "lua54", "vendored"] }
+pak-db = "0.1.1"
+serde = "1.0.219"
+thiserror = "2.0.12"

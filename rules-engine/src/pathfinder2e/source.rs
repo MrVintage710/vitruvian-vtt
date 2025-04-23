@@ -2,8 +2,6 @@ use mlua::{FromLua, IntoLua};
 use serde::{Deserialize, Serialize};
 use strum::{EnumDiscriminants, IntoDiscriminant, IntoStaticStr};
 
-use crate::pak::value::PakValue;
-
 
 #[derive(Deserialize, Serialize, Debug, EnumDiscriminants, IntoStaticStr, Clone)]
 #[strum_discriminants(name(SourceBook))]

@@ -1,0 +1,13 @@
+/target
+
+/5etools
+
+/node_modules
+/.idea
+/scratch
+/.vscode
+/pf2e
+/storybook_static
+
+.DS_Store
+*storybook.log

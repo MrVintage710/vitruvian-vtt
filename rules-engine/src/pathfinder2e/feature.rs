@@ -3,7 +3,8 @@ use sea_query::{ColumnDef, Iden, SqliteQueryBuilder};
 use serde::{Deserialize, Serialize};
 use strum::{EnumDiscriminants, EnumIter};
 
-use crate::{error::VitruvianRulesEngineResult, item::{CustomIden, ItemTable, RulesItem, RulesItemIdentifier}, pak::{index::PakIndex, item::PakItemSearchable}};
+use crate::{error::VitruvianRulesEngineResult, item::{CustomIden, ItemTable, RulesItem, RulesItemIdentifier}};
+use pak_db::{index::PakIndex, item::PakItemSearchable};
 
 use super::{action::Action, passive::Passive, source::SourceRef};
 
@@ -53,7 +54,7 @@ impl Feature {
 }
 
 impl PakItemSearchable for Feature {
-    fn get_indices(&self) -> Vec<crate::pak::index::PakIndex> {
+    fn get_indices(&self) -> Vec<PakIndex> {
         let Some(meta) = self.meta() else { return vec![];};
         let mut indices = vec![
             // PakIndex::new("name", meta.name.clone()),

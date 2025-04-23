@@ -1,14 +1,32 @@
 ---@meta
 
------------------------    Constants    -----------------------
+------------------------------------------------------------------------------------------------
+--        Constants
+------------------------------------------------------------------------------------------------
 
 ---@type string
 id = "";
 
------------------------    Functions    -----------------------
+------------------------------------------------------------------------------------------------
+--        2.0
+------------------------------------------------------------------------------------------------
 
----@function class This function will create a choice feature.
----@return Pathfinder2eClassMeta
+---@alias Schema "number" | "integer" | "string" | "boolean" | "function" | table<string, Schema>
+
+---@alias StatValue string | number | boolean | integer | StatBlock
+---@alias StatBlock table<string, (StatValue | fun(StatBlock) : StatValue)>
+
+---@class AgentDef
+local AgentDef = {
+    defined_fields = {}
+}
+
+------------------------------------------------------------------------------------------------
+--        Functions
+------------------------------------------------------------------------------------------------
+
+---@function class This is the function that will create a class.
+---@return Pathfinder2eClass
 function class(features, numberOfChoices, meta) end
 
 ---@function feature_choice This function will create a choice feature.
